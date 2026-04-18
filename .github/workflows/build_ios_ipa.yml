@@ -1,0 +1,41 @@
+name: Build iOS IPA for Sideloading (Windows Workaround)
+
+# This allows you to manually trigger the build from the GitHub Actions tab
+on:
+  workflow_dispatch:
+
+jobs:
+  build_ios:
+    name: Build iOS IPA
+    runs-on: macos-latest # This is the magic part: it runs on a free cloud Mac!
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build iOS App (No Codesign)
+        # We build the raw iOS app without Apple Developer codesigning
+        run: flutter build ios --release --no-codesign
+
+      - name: Convert to IPA for AltStore/Sideloadly
+        # To make it sideloadable on Windows, we pack the Runner.app into a Payload folder and zip it to .ipa
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/
+          zip -qq -r Amttai.ipa Payload
+
+      - name: Upload IPA as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Amttai-iOS-IPA
+          path: build/ios/iphoneos/Amttai.ipa
+          retention-days: 3

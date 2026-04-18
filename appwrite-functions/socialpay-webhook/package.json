@@ -1,0 +1,10 @@
+{
+  "name": "socialpay-webhook",
+  "version": "1.0.0",
+  "description": "Receive SocialPay callbacks and update payment status in Appwrite",
+  "type": "module",
+  "main": "src/main.js",
+  "dependencies": {
+    "node-appwrite": "^13.0.0"
+  }
+}

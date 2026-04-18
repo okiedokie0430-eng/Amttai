@@ -1,0 +1,346 @@
+import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+
+import '../../core/theme/app_colors.dart';
+import 'widgets/add_ingredient_sheet.dart';
+
+class PantryScreen extends StatefulWidget {
+  const PantryScreen({super.key});
+
+  @override
+  State<PantryScreen> createState() => _PantryScreenState();
+}
+
+class _PantryScreenState extends State<PantryScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final List<IngredientItem> _myIngredients = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _openAddIngredients() async {
+    final result = await Navigator.of(context, rootNavigator: false)
+        .push<List<IngredientItem>>(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const AddIngredientScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  final tween = Tween(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeOutCubic));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+            transitionDuration: const Duration(milliseconds: 350),
+          ),
+        );
+
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        for (final item in result) {
+          if (!_myIngredients.any((e) => e.id == item.id)) {
+            _myIngredients.add(item);
+          }
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = AppColors.background(context);
+    final textPrimary = AppColors.textPrimary(context);
+    final textSecondary = AppColors.textSecondary(context);
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Text(
+                'Миний агуулах',
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+
+            // Tabs
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                splashFactory: NoSplash.splashFactory,
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+                indicatorColor: AppColors.primary,
+                indicatorWeight: 2,
+                labelColor: textPrimary,
+                unselectedLabelColor: textSecondary,
+                labelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                tabs: [
+                  Tab(
+                    child: Row(
+                      children: [
+                        const Text('Миний орцнууд'),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${_myIngredients.length}',
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Row(
+                      children: [
+                        const Text('Жорын санаанууд'),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '0',
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+            Divider(
+              color: AppColors.border(context).withValues(alpha: 0.2),
+              height: 1,
+            ),
+
+            // Tab Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _myIngredients.isEmpty
+                      ? _buildEmptyState(
+                          context,
+                          textPrimary,
+                          textSecondary,
+                          'assets/images/Food animation.json',
+                        )
+                      : _buildIngredientsList(textPrimary),
+                  _buildEmptyState(
+                    context,
+                    textPrimary,
+                    textSecondary,
+                    'assets/images/Recipes book animation.json',
+                  ),
+                ],
+              ),
+            ),
+
+            // Bottom Button
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _openAddIngredients,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'ОРЦ НЭМЭХ',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIngredientsList(Color textPrimary) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(20),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: _myIngredients.length,
+      itemBuilder: (context, index) {
+        final item = _myIngredients[index];
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: AppColors.surfaceVariant(context),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 5,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: item.bgColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      item.imageEmoji,
+                      style: const TextStyle(fontSize: 48),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    item.name,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context,
+    Color textPrimary,
+    Color textSecondary,
+    String lottieAsset,
+  ) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          SizedBox(
+            height: 240,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Lottie.asset(
+                lottieAsset,
+                fit: BoxFit.contain,
+                repeat: false,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'Таны хүнсний агуулах хоосон байна.',
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Эхний орцоо нэмээд эсвэл хамгийн түгээмэл хэрэглэгддэг орцуудыг нэмж хурдан эхлээрэй.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: textSecondary,
+                fontSize: 13,
+                height: 1.4,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
