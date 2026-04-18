@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/fade_slide_in.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -28,36 +29,48 @@ class _SearchScreenState extends State<SearchScreen> {
       'emoji': '🍳',
       'color': const Color(0xFFFFF0D4),
       'accent': const Color(0xFFFFD280),
+      'darkColor': const Color(0xFF5C4010),
+      'darkAccent': const Color(0xFF855D18),
     },
     {
       'name': 'Бранч',
       'emoji': '🥞',
       'color': const Color(0xFFFFE4E1),
       'accent': const Color(0xFFFFB3B3),
+      'darkColor': const Color(0xFF52282B),
+      'darkAccent': const Color(0xFF7A3B40),
     },
     {
       'name': 'Өдрийн хоол',
       'emoji': '🥗',
       'color': const Color(0xFFE8F5E9),
       'accent': const Color(0xFFA5D6A7),
+      'darkColor': const Color(0xFF1E4222),
+      'darkAccent': const Color(0xFF2C6132),
     },
     {
       'name': 'Оройн хоол',
       'emoji': '🥘',
       'color': const Color(0xFFE3F2FD),
       'accent': const Color(0xFF90CAF9),
+      'darkColor': const Color(0xFF143A5F),
+      'darkAccent': const Color(0xFF1D558A),
     },
     {
       'name': 'Хөнгөн зууш',
       'emoji': '🥪',
       'color': const Color(0xFFFFF3E0),
       'accent': const Color(0xFFB3E5FC),
+      'darkColor': const Color(0xFF593C11),
+      'darkAccent': const Color(0xFF1A5A7A),
     },
     {
       'name': 'Амттан',
       'emoji': '🍰',
       'color': const Color(0xFFF3E5F5),
       'accent': const Color(0xFFCE93D8),
+      'darkColor': const Color(0xFF4A1C52),
+      'darkAccent': const Color(0xFF6B2975),
     },
   ];
 
@@ -233,15 +246,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Icon(
-                        Icons.tune_rounded,
-                        color: AppColors.textPrimary(context),
-                        size: 26,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -274,8 +278,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _exploreContent(TextTheme textTheme) {
     return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
+      physics: const BouncingScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.only(bottom: 24), // Reduced from 120 to fix small screen extra spaces
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -301,49 +306,56 @@ class _SearchScreenState extends State<SearchScreen> {
             itemCount: _meals.length,
             itemBuilder: (context, index) {
               final meal = _meals[index];
-              return Material(
-                color: meal['color'],
-                borderRadius: BorderRadius.circular(20),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () {
-                    _ctrl.text = meal['name'];
-                    _onChanged(meal['name']);
-                    _focusNode.unfocus();
-                  },
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: -20,
-                        top: -20,
-                        child: Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(
-                            color: meal['accent'],
-                            shape: BoxShape.circle,
+              final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+              final Color displayColor = isDarkMode ? meal['darkColor'] : meal['color'];
+              final Color displayAccentColor = isDarkMode ? meal['darkAccent'] : meal['accent'];
+
+              return FadeSlideIn(
+                delay: Duration(milliseconds: 300 + (index * 100)),
+                child: Material(
+                  color: displayColor,
+                  borderRadius: BorderRadius.circular(20),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () {
+                      _ctrl.text = meal['name'];
+                      _onChanged(meal['name']);
+                      _focusNode.unfocus();
+                    },
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -20,
+                          top: -20,
+                          child: Container(
+                            width: 90,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              color: displayAccentColor,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        right: 8,
-                        bottom: 8,
-                        child: Text(
-                          meal['emoji'],
-                          style: const TextStyle(fontSize: 40),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          meal['name'],
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: Colors.black87,
+                        Positioned(
+                          right: 8,
+                          bottom: 8,
+                          child: Text(
+                            meal['emoji'],
+                            style: const TextStyle(fontSize: 40),
                           ),
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            meal['name'],
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: isDarkMode ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -382,8 +394,9 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
     return ListView.builder(
-      physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 120),
+      physics: const BouncingScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24), // Reduced from 120
       itemCount: rp.searchResults.length,
       itemBuilder: (_, i) {
         final recipe = rp.searchResults[i];
@@ -403,6 +416,31 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: [
                   Hero(
                     tag: 'search_recipe_image_${recipe.id}',
+                    createRectTween: (begin, end) => RectTween(begin: begin, end: end),
+                    flightShuttleBuilder: (
+                      flightContext,
+                      animation,
+                      flightDirection,
+                      fromHeroContext,
+                      toHeroContext,
+                    ) {
+                      final isPush = flightDirection == HeroFlightDirection.push;
+                      final startRadius = isPush ? 16.0 : 0.0;
+                      final endRadius = isPush ? 0.0 : 16.0;
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) {
+                          final radius = startRadius + (endRadius - startRadius) * animation.value;
+                          return ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(radius),
+                              bottomLeft: Radius.circular(radius),
+                            ),
+                            child: isPush ? toHeroContext.widget : fromHeroContext.widget,
+                          );
+                        },
+                      );
+                    },
                     child: SizedBox(
                       width: 140,
                       height: double.infinity,

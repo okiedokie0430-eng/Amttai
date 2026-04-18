@@ -71,6 +71,7 @@ class ProfileScreen extends StatelessWidget {
               ];
             },
             body: TabBarView(
+              physics: const NeverScrollableScrollPhysics(),
               children: [
                 _RecipeList(
                   bgColor: bgColor,

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class DynamicRefreshIndicator extends StatefulWidget {
   final Widget child;
   final Future<void> Function() onRefresh;
@@ -55,7 +57,7 @@ class _DynamicRefreshIndicatorState extends State<DynamicRefreshIndicator>
       onStateChanged: (change) {
         if (change.didChange(to: IndicatorState.armed) && !_armedHapticSent) {
           _armedHapticSent = true;
-          HapticFeedback.vibrate();
+          HapticFeedback.lightImpact();
         }
         if (change.didChange(to: IndicatorState.idle)) {
           _armedHapticSent = false;
@@ -70,47 +72,38 @@ class _DynamicRefreshIndicatorState extends State<DynamicRefreshIndicator>
       },
       builder: (context, child, controller) {
         final pullProgress = controller.value.clamp(0.0, 1.0).toDouble();
-        final isRefreshing =
-            !controller.isDragging &&
-            !controller.isArmed &&
-            !controller.isIdle;
+        final isRefreshing = controller.isLoading || controller.isSettling;
 
         if (!isRefreshing) {
           _animController.value = pullProgress * 0.5;
         }
 
-        final refreshSpaceHeight = pullProgress * widget.maxPullDistance;
         final showIndicator = controller.value > 0.0 || !controller.isIdle;
-        final indicatorOpacity = pullProgress;
         
+        // CustomRefreshIndicator normally doesn't need to translate the child manually 
+        // to avoid double displacement (especially on iOS). 
+        // We just draw the indicator over it with a smooth offset top.
         final indicatorTop =
-            MediaQuery.of(context).padding.top +
-            (refreshSpaceHeight * 0.5) -
-            (widget.indicatorSize * 0.5);
-
-        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+            MediaQuery.of(context).padding.top + (pullProgress * widget.maxPullDistance * 0.6) - 10;
 
         return Stack(
           children: <Widget>[
-            Transform.translate(
-              offset: Offset(0.0, refreshSpaceHeight),
-              child: child,
-            ),
+            child,
             if (showIndicator)
               Positioned(
                 top: indicatorTop,
                 left: 0,
                 right: 0,
                 child: Opacity(
-                  opacity: indicatorOpacity,
+                  opacity: pullProgress,
                   child: Center(
                     child: SizedBox(
                       width: widget.indicatorSize,
                       height: widget.indicatorSize,
                       child: ColorFiltered(
-                        colorFilter: ColorFilter.mode(
-                          isDarkMode ? Colors.white : Colors.transparent,
-                          isDarkMode ? BlendMode.srcATop : BlendMode.dst,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcATop,
                         ),
                         child: Lottie.asset(
                           widget.animationAsset,

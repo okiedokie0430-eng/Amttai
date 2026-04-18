@@ -13,6 +13,8 @@ class AppTheme {
       colorSchemeSeed: AppColors.primary,
     );
     return base.copyWith(
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
       scaffoldBackgroundColor: AppColors.backgroundLight,
       appBarTheme: AppBarTheme(
         elevation: 0,
@@ -99,6 +101,8 @@ class AppTheme {
       colorSchemeSeed: AppColors.primary,
     );
     return base.copyWith(
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
       scaffoldBackgroundColor: AppColors.backgroundDark,
       appBarTheme: AppBarTheme(
         elevation: 0,

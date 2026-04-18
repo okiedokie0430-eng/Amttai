@@ -86,30 +86,27 @@ class RecipeCard extends StatelessWidget {
               Hero(
                 tag: '${heroPrefix}recipe_image_${recipe.id}',
                 createRectTween: (begin, end) => RectTween(begin: begin, end: end),
-                flightShuttleBuilder:
-                    (
-                      flightContext,
-                      animation,
-                      flightDirection,
-                      fromHeroContext,
-                      toHeroContext,
-                    ) {
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, child) {
-                          // The animation value goes from 0.0 to 1.0
-                          final isPush = flightDirection == HeroFlightDirection.push;
-                          final startRadius = isPush ? 24.0 : 0.0;
-                          final endRadius = isPush ? 0.0 : 24.0;
-                          final radius = startRadius + (endRadius - startRadius) * animation.value;
-
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(radius),
-                            child: isPush ? toHeroContext.widget : fromHeroContext.widget,
-                          );
-                        },
+                flightShuttleBuilder: (
+                  flightContext,
+                  animation,
+                  flightDirection,
+                  fromHeroContext,
+                  toHeroContext,
+                ) {
+                  final isPush = flightDirection == HeroFlightDirection.push;
+                  final startRadius = isPush ? 24.0 : 0.0;
+                  final endRadius = isPush ? 0.0 : 24.0;
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (context, child) {
+                      final radius = startRadius + (endRadius - startRadius) * animation.value;
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(radius),
+                        child: isPush ? toHeroContext.widget : fromHeroContext.widget,
                       );
                     },
+                  );
+                },
                 child: imageLayer,
               )
             else

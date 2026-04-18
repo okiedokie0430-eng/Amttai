@@ -101,60 +101,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: CustomScrollView(
-        physics: const ClampingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            backgroundColor: bgColor,
-            surfaceTintColor: Colors.transparent,
-            pinned: true,
-            expandedHeight: 120,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: textPrimary),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Text(
-                'Тохиргоо',
-                style: TextStyle(
-                  color: textPrimary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 24,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
+      appBar: AppBar(
+        backgroundColor: bgColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Тохиргоо',
+          style: TextStyle(
+            color: textPrimary,
+            fontWeight: FontWeight.w800,
+            fontSize: 24,
+            letterSpacing: -0.5,
           ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
+        ),
+      ),
+      body: ListView(
+        physics: const ClampingScrollPhysics(),
+        children: [
+          const SizedBox(height: 8),
 
-                // -- APP PREFERENCES SECTION --
-                const SizedBox(height: 12),
-                _buildSection(
-                  bgColor: cardColor,
-                  children: [
-                    _buildListTile(
-                      icon: Icons.set_meal_rounded,
-                      title: 'Хоолны тохиргоо',
-                      textColor: textPrimary,
-                      iconColor: textSecondary,
-                      onTap: () {},
-                    ),
-                    _buildDivider(dividerColor),
-                    _buildListTile(
-                      icon: Icons.settings_rounded,
-                      title: 'Ерөнхий тохиргоо',
-                      textColor: textPrimary,
-                      iconColor: textSecondary,
-                      onTap: () => context.push('/account-settings'),
-                    ),
-                    _buildDivider(dividerColor),
-                    _buildListTile(
-                      icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+          // -- APP PREFERENCES SECTION --
+          const SizedBox(height: 12),
+          _buildSection(
+            bgColor: cardColor,
+            children: [
+              _buildListTile(
+                icon: Icons.settings_rounded,
+                title: 'Ерөнхий тохиргоо',
+                textColor: textPrimary,
+                iconColor: textSecondary,
+                onTap: () => context.push('/account-settings'),
+              ),
+              _buildDivider(dividerColor),
+              _buildListTile(
+                icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                       title: S.darkMode,
                       textColor: textPrimary,
                       iconColor: textSecondary,
@@ -217,11 +202,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   ],
-                ),
-                const SizedBox(height: 48),
-              ],
-            ),
           ),
+          const SizedBox(height: 48),
         ],
       ),
     );

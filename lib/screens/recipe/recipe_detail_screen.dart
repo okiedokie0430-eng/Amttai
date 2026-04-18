@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -152,32 +151,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         fit: StackFit.expand,
                         children: [
                           Hero(
-                            tag:
-                                '${widget.heroPrefix}recipe_image_${recipe.id}',
+                            tag: '${widget.heroPrefix}recipe_image_${recipe.id}',
                             createRectTween: (begin, end) => RectTween(begin: begin, end: end),
-                            flightShuttleBuilder:
-                                (
-                                  BuildContext flightContext,
-                                  Animation<double> animation,
-                                  HeroFlightDirection flightDirection,
-                                  BuildContext fromHeroContext,
-                                  BuildContext toHeroContext,
-                                ) {
-                                  return AnimatedBuilder(
-                                    animation: animation,
-                                    builder: (context, child) {
-                                      final isPush = flightDirection == HeroFlightDirection.push;
-                                      final startRadius = isPush ? 24.0 : 0.0;
-                                      final endRadius = isPush ? 0.0 : 24.0;
-                                      final radius = startRadius + (endRadius - startRadius) * animation.value;
-
-                                      return ClipRRect(
-                                        borderRadius: BorderRadius.circular(radius),
-                                        child: isPush ? toHeroContext.widget : fromHeroContext.widget,
-                                      );
-                                    },
-                                  );
-                                },
                             child: Material(
                               type: MaterialType.transparency,
                               child: recipe.imageUrl != null
@@ -563,23 +538,25 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     onTap: onTap,
   );
 
-  Widget _headerIconButton({required Widget icon, required VoidCallback onTap}) =>
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 0.5,
-            ),
-          ),
-          child: Center(child: icon),
+  Widget _headerIconButton({
+    required Widget icon,
+    required VoidCallback onTap,
+  }) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.4),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 0.5,
         ),
-      );
+      ),
+      child: Center(child: icon),
+    ),
+  );
 
   Widget _metaChip(IconData icon, String text) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -639,4 +616,3 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 }
-

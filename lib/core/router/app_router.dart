@@ -125,27 +125,12 @@ class AppRouter {
         path: '/recipe/:id',
         pageBuilder: (context, state) {
           final heroPrefix = state.uri.queryParameters['hero'] ?? '';
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: RecipeDetailScreen(
+          return _fade(
+            RecipeDetailScreen(
               recipeId: state.pathParameters['id']!,
               heroPrefix: heroPrefix,
             ),
-            transitionDuration: const Duration(milliseconds: 600),
-            reverseTransitionDuration: const Duration(milliseconds: 400),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  final fadeIn = CurvedAnimation(
-                    parent: animation,
-                    curve: const Interval(0.0, 0.2, curve: Curves.easeOut),
-                    reverseCurve: const Interval(
-                      0.5,
-                      0.9,
-                      curve: Curves.easeIn,
-                    ),
-                  );
-                  return FadeTransition(opacity: fadeIn, child: child);
-                },
+            state,
           );
         },
       ),
