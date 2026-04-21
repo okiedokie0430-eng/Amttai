@@ -39,7 +39,7 @@ class _DynamicRefreshIndicatorState extends State<DynamicRefreshIndicator>
     // Default duration for Lottie looping speed
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 750),
+      duration: const Duration(milliseconds: 500),
     );
   }
 
@@ -72,30 +72,39 @@ class _DynamicRefreshIndicatorState extends State<DynamicRefreshIndicator>
       },
       builder: (context, child, controller) {
         final pullProgress = controller.value.clamp(0.0, 1.0).toDouble();
-        final isRefreshing = controller.isLoading || controller.isSettling;
+        final isRefreshing =
+            !controller.isDragging &&
+            !controller.isArmed &&
+            !controller.isIdle;
 
         if (!isRefreshing) {
           _animController.value = pullProgress * 0.5;
         }
 
+        final refreshSpaceHeight = pullProgress * widget.maxPullDistance;
         final showIndicator = controller.value > 0.0 || !controller.isIdle;
+        final indicatorOpacity = pullProgress;
         
-        // CustomRefreshIndicator normally doesn't need to translate the child manually 
-        // to avoid double displacement (especially on iOS). 
-        // We just draw the indicator over it with a smooth offset top.
         final indicatorTop =
-            MediaQuery.of(context).padding.top + (pullProgress * widget.maxPullDistance * 0.6) - 10;
+            MediaQuery.of(context).padding.top +
+            (refreshSpaceHeight * 0.5) -
+            (widget.indicatorSize * 0.5);
+
+        final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
 
         return Stack(
           children: <Widget>[
-            child,
+            Transform.translate(
+              offset: Offset(0.0, isIOS ? 0.0 : refreshSpaceHeight),
+              child: child,
+            ),
             if (showIndicator)
               Positioned(
                 top: indicatorTop,
                 left: 0,
                 right: 0,
                 child: Opacity(
-                  opacity: pullProgress,
+                  opacity: indicatorOpacity,
                   child: Center(
                     child: SizedBox(
                       width: widget.indicatorSize,

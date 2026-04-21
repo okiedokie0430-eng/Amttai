@@ -236,7 +236,7 @@ A mobile application providing cooking recipes and tutorials in Mongolian langua
 - **Share Recipes**: Social sharing to WhatsApp, Facebook, etc.
 - **Shopping List**: Generate and manage shopping lists from recipes
 - **Push Notifications**: New recipe alerts, trending recommendations
-- **Automated Payment**: Integrate QPay/SocialPay Business API
+- **Automated Payment**: Integrate QPay or MonPay Business API
 - **Multiple Languages**: English, Russian (long-term consideration)
 - **Video Upload**: More recipe videos
 - **Advanced Filters**: Dietary restrictions, cuisine type
@@ -617,7 +617,7 @@ A mobile application providing cooking recipes and tutorials in Mongolian langua
 - **Current Solution**: Semi-automated bank transfer (Option 1)
 - **Transaction Code System**: Unique codes to match payments
 - **Verification Time**: Target 24 hours or less
-- **Future Integration**: QPay/SocialPay Business API for full automation
+- **Future Integration**: QPay or MonPay Business API for full automation
 
 ### Revenue Projections
 - To be calculated based on:
@@ -1087,11 +1087,11 @@ Consider upgrading to automated payment when:
 4. Keep same user flow - transparent upgrade
 5. Result: Instant activation (within 15 minutes)
 
-### Upgrade Option B: QPay/SocialPay/MonPay Integration
+### Upgrade Option B: QPay/MonPay Integration
 **Recommended for full automation**
 
 **Implementation:**
-1. Register for QPay or SocialPay Business account
+1. Register for QPay or MonPay Business account
 2. Integrate their SDK into Flutter app
 3. User flow changes to:
    - Select plan → Generate QR code or payment link

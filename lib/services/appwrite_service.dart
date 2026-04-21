@@ -11,17 +11,25 @@ class AppwriteService {
   static final AppwriteService _instance = AppwriteService._internal();
   static AppwriteService get instance => _instance;
 
-  late final Client client;
-  late final Account account;
-  late final Databases databases;
-  late final Storage storage;
-  late final Realtime realtime;
+  late Client client;
+  late Account account;
+  late Databases databases;
+  late Storage storage;
+  late Realtime realtime;
 
   bool _initialised = false;
 
   /// Call once from `main()` before `runApp`.
   void init() {
     if (_initialised) return;
+    reset();
+  }
+
+  /// Rebuilds the Appwrite client and all service handles.
+  ///
+  /// This is used after logout to ensure stale auth headers/sessions are not
+  /// carried into a fresh login attempt.
+  void reset() {
     client = Client()
       ..setEndpoint(AppConfig.appwriteEndpoint)
       ..setProject(AppConfig.appwriteProjectId)

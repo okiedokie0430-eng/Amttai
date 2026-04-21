@@ -7,8 +7,8 @@ import 'appwrite_service.dart';
 
 /// Customer-service chat backed by Appwrite Realtime.
 class ChatService {
-  final Databases _db = AppwriteService.instance.databases;
-  final Realtime _realtime = AppwriteService.instance.realtime;
+  Databases get _db => AppwriteService.instance.databases;
+  Realtime get _realtime => AppwriteService.instance.realtime;
 
   /// Send a message from the user.
   /// Returns the created [SupportMessage] on success, null on error.

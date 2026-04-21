@@ -1,14 +1,18 @@
 import 'package:flutter/foundation.dart';
+import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart' as models;
 
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../services/push_notification_service.dart';
 import '../services/user_service.dart';
 
 /// Manages authentication state and the current user profile.
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
+  final PushNotificationService _pushNotificationService =
+      PushNotificationService.instance;
 
   AppUser? _user;
   bool _isLoading = false;
@@ -28,9 +32,18 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(true);
       final accountUser = await _authService.getCurrentUser();
       await _loadProfile(accountUser);
+      await _pushNotificationService.syncForUser(accountUser.$id);
       _isLoggedIn = true;
       return true;
-    } catch (_) {
+    } catch (e) {
+      final message = e.toString().toLowerCase();
+      if (message.contains('missing_scopes') && message.contains('[account]')) {
+        try {
+          await _authService.logout();
+        } catch (_) {
+          // Ignore logout failures when the session is already invalid.
+        }
+      }
       _isLoggedIn = false;
       return false;
     } finally {
@@ -47,11 +60,15 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      final accountUser =
-          await _authService.register(email: email, password: password, name: name);
+      final accountUser = await _authService.register(
+        email: email,
+        password: password,
+        name: name,
+      );
       // Auto-login after registration.
       await _authService.loginWithEmail(email: email, password: password);
       await _createProfile(accountUser);
+      await _pushNotificationService.syncForUser(accountUser.$id);
       _isLoggedIn = true;
     } catch (e) {
       _error = e.toString();
@@ -70,9 +87,65 @@ class AuthProvider extends ChangeNotifier {
       await _authService.loginWithEmail(email: email, password: password);
       final accountUser = await _authService.getCurrentUser();
       await _loadProfile(accountUser);
+      await _pushNotificationService.syncForUser(accountUser.$id);
       _isLoggedIn = true;
     } catch (e) {
-      _error = e.toString();
+      final message = e.toString();
+      final normalized = message.toLowerCase();
+
+      if (normalized.contains('missing_scopes') &&
+          normalized.contains('[account]')) {
+        try {
+          await _authService.logout();
+        } catch (_) {
+          // Ignore logout failures when the session is already invalid.
+        }
+
+        _error =
+            'Нэвтрэх сесс алдаатай байна. Апп-аа бүрэн хаагаад дахин нэвтэрнэ үү.';
+      } else {
+        _error = message;
+      }
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> loginWithGoogle() {
+    return _loginWithOAuth(provider: OAuthProvider.google);
+  }
+
+  Future<void> _loginWithOAuth({required OAuthProvider provider}) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      await _authService.loginWithOAuth(provider: provider);
+      final accountUser = await _authService.getCurrentUser();
+      await _loadProfile(accountUser);
+      await _pushNotificationService.syncForUser(accountUser.$id);
+      _isLoggedIn = true;
+    } catch (e) {
+      final message = e.toString();
+      final normalized = message.toLowerCase();
+
+      _isLoggedIn = false;
+
+      if (_isOAuthCancel(normalized)) {
+        _error = 'Google нэвтрэлт цуцлагдлаа.';
+      } else if (normalized.contains('nullnull')) {
+        _error = 'Google нэвтрэлт амжилтгүй боллоо. Дахин оролдоно уу.';
+      } else if (normalized.contains('missing_scopes') &&
+          normalized.contains('[account]')) {
+        try {
+          await _authService.logout();
+        } catch (_) {
+          // Ignore logout failures when the session is already invalid.
+        }
+
+        _error = 'Нэвтрэх сесс алдаатай байна. Дахин оролдоно уу.';
+      } else {
+        _error = message;
+      }
     } finally {
       _setLoading(false);
     }
@@ -102,6 +175,7 @@ class AuthProvider extends ChangeNotifier {
       await _authService.verifyOtp(userId: _otpUserId!, otp: code);
       final accountUser = await _authService.getCurrentUser();
       await _loadProfile(accountUser);
+      await _pushNotificationService.syncForUser(accountUser.$id);
       _isLoggedIn = true;
     } catch (e) {
       _error = e.toString();
@@ -112,10 +186,24 @@ class AuthProvider extends ChangeNotifier {
 
   // ── Logout ─────────────────────────────────────────────
   Future<void> logout() async {
-    await _authService.logout();
-    _user = null;
-    _isLoggedIn = false;
-    notifyListeners();
+    _clearError();
+
+    final userId = _user?.id;
+    if (userId != null) {
+      try {
+        await _pushNotificationService.detachUser(userId);
+      } catch (_) {
+        // Continue local logout even if token cleanup fails.
+      }
+    }
+
+    try {
+      await _authService.logout();
+    } finally {
+      _user = null;
+      _isLoggedIn = false;
+      notifyListeners();
+    }
   }
 
   // ── Delete Account ─────────────────────────────────────
@@ -127,6 +215,7 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
     try {
       final userId = _user!.id;
+      await _pushNotificationService.detachUser(userId);
       // Call the server-side function that handles everything
       await _authService.deleteAccount(userId);
       _user = null;
@@ -160,14 +249,35 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateProfile({String? name, String? photoUrl}) async {
+    final existing = _user;
+    if (existing == null) {
+      return;
+    }
+
+    final normalizedName = name?.trim();
+    final updatedName = (normalizedName != null && normalizedName.isNotEmpty)
+        ? normalizedName
+        : existing.name;
+
+    if (updatedName != existing.name) {
+      await _authService.updateName(updatedName);
+    }
+
+    final updated = await _userService.upsertProfile(
+      existing.copyWith(
+        name: updatedName,
+        photoUrl: photoUrl ?? existing.photoUrl,
+      ),
+    );
+
+    _user = updated;
+    notifyListeners();
+  }
+
   // ── Update Name ────────────────────────────────────────
   Future<void> updateName(String name) async {
-    await _authService.updateName(name);
-    if (_user != null) {
-      _user = _user!.copyWith(name: name);
-      await _userService.upsertProfile(_user!);
-      notifyListeners();
-    }
+    await updateProfile(name: name);
   }
 
   // ── Change Password ────────────────────────────────────
@@ -186,10 +296,7 @@ class AuthProvider extends ChangeNotifier {
     required String newEmail,
     required String password,
   }) async {
-    await _authService.changeEmail(
-      newEmail: newEmail,
-      password: password,
-    );
+    await _authService.changeEmail(newEmail: newEmail, password: password);
     if (_user != null) {
       _user = _user!.copyWith(email: newEmail);
       await _userService.upsertProfile(_user!);
@@ -199,11 +306,7 @@ class AuthProvider extends ChangeNotifier {
 
   // ── Update Photo URL ──────────────────────────────────
   Future<void> updatePhotoUrl(String url) async {
-    if (_user != null) {
-      _user = _user!.copyWith(photoUrl: url);
-      await _userService.upsertProfile(_user!);
-      notifyListeners();
-    }
+    await updateProfile(photoUrl: url);
   }
 
   // ── Internal ───────────────────────────────────────────
@@ -217,12 +320,14 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _createProfile(models.User accountUser) async {
-    _user = await _userService.upsertProfile(AppUser(
-      id: accountUser.$id,
-      name: accountUser.name,
-      email: accountUser.email,
-      createdAt: DateTime.now(),
-    ));
+    _user = await _userService.upsertProfile(
+      AppUser(
+        id: accountUser.$id,
+        name: accountUser.name,
+        email: accountUser.email,
+        createdAt: DateTime.now(),
+      ),
+    );
     notifyListeners();
   }
 
@@ -233,5 +338,13 @@ class AuthProvider extends ChangeNotifier {
 
   void _clearError() {
     _error = null;
+  }
+
+  bool _isOAuthCancel(String normalizedError) {
+    return normalizedError.contains('cancel') ||
+        normalizedError.contains('cancelled') ||
+        normalizedError.contains('user canceled') ||
+        normalizedError.contains('user closed') ||
+        normalizedError.contains('aborted');
   }
 }

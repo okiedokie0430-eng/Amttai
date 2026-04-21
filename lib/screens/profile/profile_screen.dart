@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/premium_recipe_access.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
+import '../../widgets/common/user_avatar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,7 +16,6 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = AppColors.background(context);
     final primaryColor = AppColors.primary;
@@ -33,13 +33,7 @@ class ProfileScreen extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Container(
                     color: bgColor,
-                    child: _buildHeader(
-                      context,
-                      auth,
-                      isDark,
-                      primaryColor,
-                      bgColor,
-                    ),
+                    child: _buildHeader(context, auth, primaryColor),
                   ),
                 ),
                 SliverPersistentHeader(
@@ -108,9 +102,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildHeader(
     BuildContext context,
     AuthProvider auth,
-    bool isDark,
     Color primaryColor,
-    Color bgColor,
   ) {
     final user = auth.user;
     final textTheme = Theme.of(context).textTheme;
@@ -150,7 +142,12 @@ class ProfileScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildAvatar(user?.photoUrl, user?.name, primaryColor, context),
+              UserAvatar(
+                photoUrl: user?.photoUrl,
+                name: user?.name,
+                isPremium: auth.hasPremium,
+                size: 92,
+              ),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(
@@ -194,52 +191,6 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAvatar(String? photoUrl, String? name, Color primaryColor, BuildContext context) {
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      if (photoUrl.endsWith('.json')) {
-        return Container(
-          width: 92,
-          height: 92,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.surfaceVariant(context),
-            border: Border.all(color: primaryColor.withValues(alpha: 0.1), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ]
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Transform.scale(
-            scale: 1.5,
-            child: Lottie.asset(photoUrl, fit: BoxFit.cover),
-          )
-        );
-      }
-      return CircleAvatar(
-        radius: 46,
-        backgroundColor: AppColors.surfaceVariant(context),
-        backgroundImage: CachedNetworkImageProvider(photoUrl),
-      );
-    }
-    
-    return CircleAvatar(
-      radius: 46,
-      backgroundColor: AppColors.surfaceVariant(context),
-      child: Text(
-        name?.isNotEmpty == true ? name![0].toUpperCase() : 'О',
-        style: TextStyle(
-          color: primaryColor,
-          fontWeight: FontWeight.w700,
-          fontSize: 32,
-        ),
       ),
     );
   }
@@ -310,8 +261,11 @@ class _RecipeList extends StatelessWidget {
             color: AppColors.surfaceVariant(context),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () =>
-                  context.push('/recipe/${recipe.id}?hero=$heroPrefix'),
+              onTap: () => openRecipeWithPremiumGuard(
+                context: context,
+                recipe: recipe,
+                heroPrefix: heroPrefix,
+              ),
               child: SizedBox(
                 height: 140,
                 child: Row(
@@ -433,6 +387,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
+    return true;
   }
 }

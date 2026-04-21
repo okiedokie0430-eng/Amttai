@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1093579951906",
+    "project_id": "amttai",
+    "storage_bucket": "amttai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093579951906:android:64c5dfcfa7d153effb5f7b",
+        "android_client_info": {
+          "package_name": "com.amttai.amttai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCQwFguooVX1sfhMZlBwwJ3A1TPB7gyrc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

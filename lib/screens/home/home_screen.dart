@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/premium_recipe_access.dart';
 import '../../models/recipe.dart';
 import '../../providers/recipe_provider.dart';
 import '../../widgets/common/dynamic_refresh_indicator.dart';
@@ -31,8 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _pageController = PageController(viewportFraction: 1.0);
     _trendingController = PageController(viewportFraction: 0.9);
     _newController = PageController(viewportFraction: 0.9);
-    final rp = context.read<RecipeProvider>();
-    rp.loadRecipes();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      context.read<RecipeProvider>().loadRecipes();
+    });
   }
 
   @override
@@ -44,21 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGradientTitle(String text, TextStyle? style) {
-    return ShaderMask(
-      blendMode: BlendMode.srcATop,
-      shaderCallback: (bounds) => LinearGradient(
-        colors: [
-          AppColors.primaryLight.withValues(alpha: 0.35),
-          AppColors.primary.withValues(alpha: 0.25),
-          AppColors.primaryDark.withValues(alpha: 0.35),
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(bounds),
-      child: Text(
-        text,
-        style: style?.copyWith(color: AppColors.textPrimary(context)),
-      ),
+    return Text(
+      text,
+      style: style?.copyWith(color: AppColors.textPrimary(context)),
     );
   }
 
@@ -125,7 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      height: MediaQuery.of(context).padding.top + kToolbarHeight - 8,
+                      height:
+                          MediaQuery.of(context).padding.top +
+                          kToolbarHeight -
+                          8,
                     ),
                     if (rp.recipes.isNotEmpty) ...[
                       FadeSlideIn(
@@ -152,7 +148,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             animation: _pageController,
                             child: PageView.builder(
                               controller: _pageController,
-                              physics: const BouncingScrollPhysics(parent: PageScrollPhysics()),
+                              physics: const BouncingScrollPhysics(
+                                parent: PageScrollPhysics(),
+                              ),
                               itemCount: rp.recipes.length > 5
                                   ? 5
                                   : rp.recipes.length,
@@ -212,7 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       double offset = 0.0;
                                       double rotation = 0.0;
                                       final absProgress = progress.abs();
-                                      final isFocusedCard = index == activeIndex;
+                                      final isFocusedCard =
+                                          index == activeIndex;
                                       final overlayOpacity =
                                           ((1.0 - (absProgress * 1.7)).clamp(
                                                     0.0,
@@ -254,7 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             uiOpacity: overlayOpacity,
                                             enableHero: isFocusedCard,
                                             imageMemCacheHeight: 720,
-                                            imageFilterQuality: FilterQuality.medium,
+                                            imageFilterQuality:
+                                                FilterQuality.medium,
                                             heroPrefix: 'home_',
                                             onTap: null,
                                           ),
@@ -285,8 +285,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     behavior: HitTestBehavior.translucent,
                                     onTap: () {
                                       final recipe = rp.recipes[activeIndex];
-                                      context.push(
-                                        '/recipe/${recipe.id}?hero=home_',
+                                      openRecipeWithPremiumGuard(
+                                        context: context,
+                                        recipe: recipe,
+                                        heroPrefix: 'home_',
                                       );
                                     },
                                     child: pageViewChild!,
@@ -342,8 +344,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   recipe: recipe,
                                   isLandscape: true,
                                   heroPrefix: 'trending_',
-                                  onTap: () => context.push(
-                                    '/recipe/${recipe.id}?hero=trending_',
+                                  onTap: () => openRecipeWithPremiumGuard(
+                                    context: context,
+                                    recipe: recipe,
+                                    heroPrefix: 'trending_',
                                   ),
                                 ),
                               );
@@ -395,8 +399,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   recipe: recipe,
                                   isLandscape: true,
                                   heroPrefix: 'new_',
-                                  onTap: () => context.push(
-                                    '/recipe/${recipe.id}?hero=new_',
+                                  onTap: () => openRecipeWithPremiumGuard(
+                                    context: context,
+                                    recipe: recipe,
+                                    heroPrefix: 'new_',
                                   ),
                                 ),
                               );
@@ -409,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-            ),
+      ),
     );
   }
 

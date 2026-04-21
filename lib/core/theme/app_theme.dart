@@ -11,10 +11,11 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorSchemeSeed: AppColors.primary,
-    );
-    return base.copyWith(
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+    );
+    return base.copyWith(
       scaffoldBackgroundColor: AppColors.backgroundLight,
       appBarTheme: AppBarTheme(
         elevation: 0,
@@ -99,10 +100,11 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorSchemeSeed: AppColors.primary,
-    );
-    return base.copyWith(
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+    );
+    return base.copyWith(
       scaffoldBackgroundColor: AppColors.backgroundDark,
       appBarTheme: AppBarTheme(
         elevation: 0,

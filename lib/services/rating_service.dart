@@ -6,7 +6,7 @@ import 'appwrite_service.dart';
 
 /// Handles recipe ratings in the `ratings` collection.
 class RatingService {
-  final Databases _db = AppwriteService.instance.databases;
+  Databases get _db => AppwriteService.instance.databases;
 
   /// Submit or update a rating for a recipe.
   /// Returns true on success.

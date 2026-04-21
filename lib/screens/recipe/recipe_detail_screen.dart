@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/recipe.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
@@ -27,6 +29,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Recipe? _recipe;
   bool _loading = true;
   final Set<int> _checkedIngredients = {};
+  bool _queuedPremiumPrompt = false;
 
   @override
   void initState() {
@@ -45,6 +48,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Future<void> _load() async {
     final rp = context.read<RecipeProvider>();
     final favProv = context.read<FavoritesProvider>();
+    final auth = context.read<AuthProvider>();
 
     if (_recipe == null && mounted) {
       setState(() => _loading = true);
@@ -59,8 +63,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-    // Track as recently viewed
-    favProv.addRecentlyViewed(widget.recipeId);
+
+    final recipe = _recipe;
+    final canAccessPremium = auth.hasPremium;
+    if (recipe != null && (!recipe.isPremium || canAccessPremium)) {
+      favProv.addRecentlyViewed(widget.recipeId);
+    }
   }
 
   @override
@@ -81,453 +89,603 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     final recipe = _recipe!;
     final textTheme = Theme.of(context).textTheme;
+    final hasPremium = context.watch<AuthProvider>().hasPremium;
     final fav = context.watch<FavoritesProvider>();
     final isFav = fav.isFavorite(recipe.id);
 
-    final routeAnim = ModalRoute.of(context)?.animation;
-    final delayedContentAnim = routeAnim != null
-        ? CurvedAnimation(
-            parent: routeAnim,
-            curve: const Interval(0.6, 1.0, curve: Curves.easeOutCubic),
-            reverseCurve: const Interval(0.6, 0.9, curve: Curves.easeInCubic),
-          )
-        : const AlwaysStoppedAnimation(1.0);
+    if (recipe.isPremium && !hasPremium) {
+      _queuePremiumDialog();
+      return _buildPremiumLockedState();
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
-      body: FadeTransition(
-        opacity: delayedContentAnim,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // ── Hero image header ──
-            SliverAppBar(
-              expandedHeight: 400,
-              pinned: true,
-              stretch: true,
-              backgroundColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 16, top: 4),
-                child: _headerButton(
-                  Icons.arrow_back_ios_new_rounded,
-                  () => Navigator.pop(context),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // ── Hero image header ──
+          SliverAppBar(
+            expandedHeight: 400,
+            pinned: true,
+            stretch: true,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16, top: 4),
+              child: _headerButton(
+                Icons.arrow_back_ios_new_rounded,
+                () => Navigator.pop(context),
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16, top: 4),
+                child: _headerIconButton(
+                  icon: Icon(
+                    Icons.favorite_rounded,
+                    size: 22,
+                    color: isFav ? Colors.redAccent : Colors.white70,
+                  ),
+                  onTap: () => fav.toggleFavorite(recipe.id),
                 ),
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16, top: 4),
-                  child: _headerIconButton(
-                    icon: Icon(
-                      Icons.favorite_rounded,
-                      size: 22,
-                      color: isFav ? Colors.redAccent : Colors.white70,
-                    ),
-                    onTap: () => fav.toggleFavorite(recipe.id),
-                  ),
-                ),
-              ],
-              flexibleSpace: Stack(
-                fit: StackFit.expand,
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final double minHeight =
-                          MediaQuery.of(context).padding.top + kToolbarHeight;
-                      final double currentHeight = constraints.maxHeight;
+            ],
+            flexibleSpace: Stack(
+              fit: StackFit.expand,
+              children: [
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double minHeight =
+                        MediaQuery.of(context).padding.top + kToolbarHeight;
+                    final double currentHeight = constraints.maxHeight;
 
-                      final double fadeStart = minHeight + 160.0;
-                      final double fadeEnd = minHeight;
+                    final double fadeStart = minHeight + 160.0;
+                    final double fadeEnd = minHeight;
 
-                      double progress = 0.0;
-                      if (currentHeight <= fadeStart) {
-                        progress =
-                            1.0 -
-                            ((currentHeight - fadeEnd) / (fadeStart - fadeEnd));
-                        progress = progress.clamp(0.0, 1.0);
-                      }
+                    double progress = 0.0;
+                    if (currentHeight <= fadeStart) {
+                      progress =
+                          1.0 -
+                          ((currentHeight - fadeEnd) / (fadeStart - fadeEnd));
+                      progress = progress.clamp(0.0, 1.0);
+                    }
 
-                      return Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Hero(
-                            tag: '${widget.heroPrefix}recipe_image_${recipe.id}',
-                            createRectTween: (begin, end) => RectTween(begin: begin, end: end),
-                            child: Material(
-                              type: MaterialType.transparency,
-                              child: recipe.imageUrl != null
-                                  ? CachedNetworkImage(
-                                      imageUrl: recipe.imageUrl!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                    )
-                                  : Container(
-                                      color: AppColors.surfaceVariant(context),
-                                    ),
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Hero(
+                          tag: '${widget.heroPrefix}recipe_image_${recipe.id}',
+                          createRectTween: (begin, end) =>
+                              RectTween(begin: begin, end: end),
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: recipe.imageUrl != null
+                                ? CachedNetworkImage(
+                                    imageUrl: recipe.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  )
+                                : Container(
+                                    color: AppColors.surfaceVariant(context),
+                                  ),
+                          ),
+                        ),
+                        if (progress > 0)
+                          Positioned.fill(
+                            child: Container(
+                              color: AppColors.background(
+                                context,
+                              ).withValues(alpha: progress),
                             ),
                           ),
-                          if (progress > 0)
-                            Positioned.fill(
-                              child: Container(
-                                color: AppColors.background(
-                                  context,
-                                ).withValues(alpha: progress),
-                              ),
-                            ),
-                          if (progress > 0.5)
-                            Positioned(
-                              left: 64, // Space for leading button
-                              right: 64, // Space for action button
-                              bottom: 16,
-                              child: Opacity(
-                                opacity: ((progress - 0.5) * 2).clamp(0.0, 1.0),
-                                child: Transform.translate(
-                                  offset: Offset(0, 10 * (1 - progress)),
-                                  child: Text(
-                                    recipe.title,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary(context),
-                                    ),
+                        if (progress > 0.5)
+                          Positioned(
+                            left: 64, // Space for leading button
+                            right: 64, // Space for action button
+                            bottom: 16,
+                            child: Opacity(
+                              opacity: ((progress - 0.5) * 2).clamp(0.0, 1.0),
+                              child: Transform.translate(
+                                offset: Offset(0, 10 * (1 - progress)),
+                                child: Text(
+                                  recipe.title,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary(context),
                                   ),
                                 ),
                               ),
                             ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Title + meta info ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (recipe.isPremium)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: AppColors.premiumGradient,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: const Text(
-                          'Premium',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ),
-                    Text(
-                      recipe.title,
-                      style: textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        height: 1.2,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Meta chips row
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 8,
-                      children: [
-                        _metaChip(
-                          Icons.access_time_rounded,
-                          '${recipe.totalTimeMinutes} мин',
-                        ),
-                        _metaChip(
-                          Icons.people_outline_rounded,
-                          '${recipe.servings} хүн',
-                        ),
-                        _metaChip(
-                          Icons.signal_cellular_alt_rounded,
-                          recipe.difficulty,
-                        ),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Description
-                    Text(
-                      recipe.description,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary(context),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                    );
+                  },
                 ),
-              ),
+              ],
             ),
+          ),
 
-            // ── Ingredients section ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Text(
-                      S.ingredients,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
+          // ── Title + meta info ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (recipe.isPremium)
                     Container(
+                      margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        gradient: AppColors.premiumGradient,
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                      child: Text(
-                        '${recipe.ingredients.length}',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: () => _addAllToCart(recipe),
-                      icon: const Icon(
-                        Icons.add_shopping_cart_rounded,
-                        size: 18,
-                      ),
-                      label: const Text('Сагсанд нэмэх'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        textStyle: const TextStyle(
-                          fontSize: 13,
+                      child: const Text(
+                        'Premium',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                  ],
+                  Text(
+                    recipe.title,
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Meta chips row
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
+                    children: [
+                      _metaChip(
+                        Icons.access_time_rounded,
+                        '${recipe.totalTimeMinutes} мин',
+                      ),
+                      _metaChip(
+                        Icons.people_outline_rounded,
+                        '${recipe.servings} хүн',
+                      ),
+                      _metaChip(
+                        Icons.signal_cellular_alt_rounded,
+                        recipe.difficulty,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Description
+                  Text(
+                    recipe.description,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary(context),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Ingredients section ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Text(
+                    S.ingredients,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${recipe.ingredients.length}',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => _addAllToCart(recipe),
+                    icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
+                    label: const Text('Сагсанд нэмэх'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Ingredient list ──
+          if (recipe.ingredients.isEmpty)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(child: Text('Орц нэмэгдээгүй')),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate((_, i) {
+                final ing = recipe.ingredients[i];
+                final checked = _checkedIngredients.contains(i);
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      if (checked) {
+                        _checkedIngredients.remove(i);
+                      } else {
+                        _checkedIngredients.add(i);
+                      }
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: checked
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: checked
+                                  ? AppColors.primary
+                                  : AppColors.border(context),
+                              width: 2,
+                            ),
+                          ),
+                          child: checked
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            ing.name,
+                            style: textTheme.bodyLarge?.copyWith(
+                              decoration: checked
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: checked
+                                  ? AppColors.textTertiary(context)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${ing.amount}${ing.unit != null ? ' ${ing.unit}' : ''}',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary(context),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }, childCount: recipe.ingredients.length),
+            ),
+
+          // ── Steps section ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+              child: Text(
+                S.steps,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
+          ),
 
-            // ── Ingredient list ──
-            if (recipe.ingredients.isEmpty)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(child: Text('Орц нэмэгдээгүй')),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate((_, i) {
-                  final ing = recipe.ingredients[i];
-                  final checked = _checkedIngredients.contains(i);
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (checked) {
-                          _checkedIngredients.remove(i);
-                        } else {
-                          _checkedIngredients.add(i);
-                        }
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: checked
-                                  ? AppColors.primary
-                                  : Colors.transparent,
-                              border: Border.all(
-                                color: checked
-                                    ? AppColors.primary
-                                    : AppColors.border(context),
-                                width: 2,
-                              ),
-                            ),
-                            child: checked
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 14,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              ing.name,
-                              style: textTheme.bodyLarge?.copyWith(
-                                decoration: checked
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: checked
-                                    ? AppColors.textTertiary(context)
-                                    : null,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '${ing.amount}${ing.unit != null ? ' ${ing.unit}' : ''}',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary(context),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }, childCount: recipe.ingredients.length),
+          if (recipe.steps.isEmpty)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(child: Text('Алхам нэмэгдээгүй')),
               ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate((_, i) {
+                final step = recipe.steps[i];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${step.order}',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                step.description,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  height: 1.5,
+                                ),
+                              ),
+                              if ((step.timerSeconds ?? 0) > 0) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceVariant(context),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Таймер: ${step.timerSeconds} сек',
+                                    style: textTheme.labelMedium?.copyWith(
+                                      color: AppColors.textSecondary(context),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              if ((step.imageUrl ?? '').trim().isNotEmpty) ...[
+                                const SizedBox(height: 10),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: AspectRatio(
+                                    aspectRatio: 16 / 9,
+                                    child: CachedNetworkImage(
+                                      imageUrl: step.imageUrl!.trim(),
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) =>
+                                          ShimmerLoader.card(height: 160),
+                                      errorWidget: (_, __, ___) => Container(
+                                        color: AppColors.surfaceVariant(
+                                          context,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Icon(
+                                          Icons.broken_image_outlined,
+                                          color: AppColors.textSecondary(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }, childCount: recipe.steps.length),
+            ),
 
-            // ── Steps section ──
+          // ── Nutrition section ──
+          if (recipe.nutrition != null) ...[
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
                 child: Text(
-                  S.steps,
+                  S.nutrition,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
-
-            if (recipe.steps.isEmpty)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(child: Text('Алхам нэмэгдээгүй')),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate((_, i) {
-                  final step = recipe.steps[i];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${step.order}',
-                              style: textTheme.labelLarge?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              step.description,
-                              style: textTheme.bodyMedium?.copyWith(
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }, childCount: recipe.steps.length),
-              ),
-
-            // ── Nutrition section ──
-            if (recipe.nutrition != null) ...[
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-                  child: Text(
-                    S.nutrition,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceVariant(context),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _nutritionItem(
+                        '${recipe.nutrition!.calories}',
+                        'ккал',
+                        context,
+                      ),
+                      _nutritionItem(
+                        '${recipe.nutrition!.protein.toStringAsFixed(1)}г',
+                        'Уураг',
+                        context,
+                      ),
+                      _nutritionItem(
+                        '${recipe.nutrition!.carbs.toStringAsFixed(1)}г',
+                        'Нүүрс ус',
+                        context,
+                      ),
+                      _nutritionItem(
+                        '${recipe.nutrition!.fat.toStringAsFixed(1)}г',
+                        'Өөх тос',
+                        context,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant(context),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _nutritionItem(
-                          '${recipe.nutrition!.calories}',
-                          'ккал',
-                          context,
-                        ),
-                        _nutritionItem(
-                          '${recipe.nutrition!.protein.toStringAsFixed(1)}г',
-                          'Уураг',
-                          context,
-                        ),
-                        _nutritionItem(
-                          '${recipe.nutrition!.carbs.toStringAsFixed(1)}г',
-                          'Нүүрс ус',
-                          context,
-                        ),
-                        _nutritionItem(
-                          '${recipe.nutrition!.fat.toStringAsFixed(1)}г',
-                          'Өөх тос',
-                          context,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            ),
+          ],
+
+          // Bottom spacing
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+    );
+  }
+
+  void _queuePremiumDialog() {
+    if (_queuedPremiumPrompt) {
+      return;
+    }
+
+    _queuedPremiumPrompt = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
+      }
+
+      final shouldUpgrade = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Premium шаардлагатай'),
+            content: const Text(
+              'Энэ жорыг үзэхийн тулд Premium төлөвлөгөөнд нэгдэх шаардлагатай.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Буцах'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Premium авах'),
               ),
             ],
+          );
+        },
+      );
 
-            // Bottom spacing
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
-          ],
+      if (!mounted) {
+        return;
+      }
+
+      if (shouldUpgrade == true) {
+        context.go('/premium');
+        return;
+      }
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        context.go('/home');
+      }
+    });
+  }
+
+  Widget _buildPremiumLockedState() {
+    return Scaffold(
+      backgroundColor: AppColors.background(context),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.workspace_premium_rounded,
+                size: 68,
+                color: AppColors.primary,
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Энэ бол Premium жор',
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Premium авахад бүх premium жор нээгдэнэ.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(context),
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () => context.push('/premium'),
+                child: const Text('Premium авах'),
+              ),
+            ],
+          ),
         ),
       ),
     );

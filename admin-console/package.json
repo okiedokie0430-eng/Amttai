@@ -1,0 +1,25 @@
+{
+  "name": "amttai-admin-console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "node-appwrite": "^14.1.0"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^3.2.4",
+    "@sveltejs/kit": "^2.21.2",
+    "@sveltejs/vite-plugin-svelte": "^4.0.4",
+    "@types/node": "^22.15.29",
+    "svelte": "^5.33.14",
+    "svelte-check": "^4.1.7",
+    "typescript": "^5.8.3",
+    "vite": "^5.4.19"
+  }
+}

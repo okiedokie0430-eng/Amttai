@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -12,8 +14,9 @@ import 'providers/payment_provider.dart';
 import 'providers/recipe_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/appwrite_service.dart';
+import 'services/push_notification_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setPreferredOrientations([
@@ -37,6 +40,13 @@ void main() {
   AppwriteService.instance.init();
 
   runApp(const AmttaiApp());
+
+  // Never block first frame on push setup; initialize it asynchronously.
+  unawaited(
+    PushNotificationService.instance.ensureInitialized().catchError((error, _) {
+      debugPrint('[Push] Startup init failed: $error');
+    }),
+  );
 }
 
 class AmttaiApp extends StatelessWidget {

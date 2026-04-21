@@ -7,7 +7,7 @@ import 'appwrite_service.dart';
 
 /// Upload / download helpers for Appwrite storage buckets.
 class StorageService {
-  final Storage _storage = AppwriteService.instance.storage;
+  Storage get _storage => AppwriteService.instance.storage;
 
   /// Upload a file and return the file ID.
   Future<String> uploadFile({

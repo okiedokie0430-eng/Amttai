@@ -104,12 +104,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         backgroundColor: bgColor,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: Text(
           'Тохиргоо',
           style: TextStyle(
@@ -119,27 +113,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             letterSpacing: -0.5,
           ),
         ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
-        children: [
-          const SizedBox(height: 8),
+        child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
 
-          // -- APP PREFERENCES SECTION --
-          const SizedBox(height: 12),
-          _buildSection(
-            bgColor: cardColor,
-            children: [
-              _buildListTile(
-                icon: Icons.settings_rounded,
-                title: 'Ерөнхий тохиргоо',
-                textColor: textPrimary,
-                iconColor: textSecondary,
-                onTap: () => context.push('/account-settings'),
-              ),
-              _buildDivider(dividerColor),
-              _buildListTile(
-                icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                // -- APP PREFERENCES SECTION --
+                const SizedBox(height: 12),
+                _buildSection(
+                  bgColor: cardColor,
+                  children: [
+                    _buildListTile(
+                      icon: Icons.settings_rounded,
+                      title: 'Ерөнхий тохиргоо',
+                      textColor: textPrimary,
+                      iconColor: textSecondary,
+                      onTap: () => context.push('/account-settings'),
+                    ),
+                    _buildDivider(dividerColor),
+                    _buildListTile(
+                      icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                       title: S.darkMode,
                       textColor: textPrimary,
                       iconColor: textSecondary,
@@ -164,7 +164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: S.subscription,
                       textColor: textPrimary,
                       iconColor: textSecondary,
-                      onTap: () => context.push('/payment'),
+                        onTap: () => context.push('/premium'),
                     ),
                     _buildDivider(dividerColor),
                     _buildListTile(
@@ -202,9 +202,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   ],
-          ),
-          const SizedBox(height: 48),
-        ],
+                ),
+                const SizedBox(height: 48),
+              ],
+            ),
       ),
     );
   }

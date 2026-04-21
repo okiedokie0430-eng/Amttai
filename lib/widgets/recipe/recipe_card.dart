@@ -86,28 +86,10 @@ class RecipeCard extends StatelessWidget {
               Hero(
                 tag: '${heroPrefix}recipe_image_${recipe.id}',
                 createRectTween: (begin, end) => RectTween(begin: begin, end: end),
-                flightShuttleBuilder: (
-                  flightContext,
-                  animation,
-                  flightDirection,
-                  fromHeroContext,
-                  toHeroContext,
-                ) {
-                  final isPush = flightDirection == HeroFlightDirection.push;
-                  final startRadius = isPush ? 24.0 : 0.0;
-                  final endRadius = isPush ? 0.0 : 24.0;
-                  return AnimatedBuilder(
-                    animation: animation,
-                    builder: (context, child) {
-                      final radius = startRadius + (endRadius - startRadius) * animation.value;
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(radius),
-                        child: isPush ? toHeroContext.widget : fromHeroContext.widget,
-                      );
-                    },
-                  );
-                },
-                child: imageLayer,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: imageLayer,
+                ),
               )
             else
               imageLayer,

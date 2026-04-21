@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../screens/auth/forgot_password_screen.dart';
@@ -6,6 +6,7 @@ import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
 import '../../screens/pantry/pantry_screen.dart';
 import '../../screens/home/home_screen.dart';
+import '../../screens/premium/premium_screen.dart';
 import '../../screens/main_shell.dart';
 import '../../screens/payment/payment_screen.dart';
 import '../../screens/profile/profile_edit_screen.dart';
@@ -64,7 +65,17 @@ class AppRouter {
       ),
       GoRoute(
         path: '/welcome',
-        pageBuilder: (_, state) => _fade(const WelcomeScreen(), state),
+        pageBuilder: (context, state) {
+          final shouldAnimate = state.uri.queryParameters['animate'] == '1';
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: WelcomeScreen(shouldAnimate: shouldAnimate),
+            transitionDuration: const Duration(milliseconds: 300),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          );
+        },
       ),
       GoRoute(
         path: '/login',
@@ -125,14 +136,33 @@ class AppRouter {
         path: '/recipe/:id',
         pageBuilder: (context, state) {
           final heroPrefix = state.uri.queryParameters['hero'] ?? '';
-          return _fade(
-            RecipeDetailScreen(
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: RecipeDetailScreen(
               recipeId: state.pathParameters['id']!,
               heroPrefix: heroPrefix,
             ),
-            state,
+            transitionDuration: const Duration(milliseconds: 600),
+            reverseTransitionDuration: const Duration(milliseconds: 400),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  final fadeIn = CurvedAnimation(
+                    parent: animation,
+                    curve: const Interval(0.0, 0.2, curve: Curves.easeOut),
+                    reverseCurve: const Interval(
+                      0.5,
+                      0.9,
+                      curve: Curves.easeIn,
+                    ),
+                  );
+                  return FadeTransition(opacity: fadeIn, child: child);
+                },
           );
         },
+      ),
+      GoRoute(
+        path: '/premium',
+        pageBuilder: (_, state) => _slide(const PremiumScreen(), state),
       ),
       GoRoute(
         path: '/payment',
@@ -157,3 +187,4 @@ class AppRouter {
     ],
   );
 }
+

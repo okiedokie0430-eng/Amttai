@@ -1,10 +1,12 @@
 /// App user model mapping to the Appwrite `users` collection.
 class AppUser {
   final String id;
+  final String? userCode;
   final String name;
   final String email;
   final String? phone;
   final String? photoUrl;
+  final List<String> pushTokens;
   final bool isPremium;
   final DateTime? premiumExpiresAt;
   final List<String> favoriteRecipeIds;
@@ -12,10 +14,12 @@ class AppUser {
 
   const AppUser({
     required this.id,
+    this.userCode,
     required this.name,
     required this.email,
     this.phone,
     this.photoUrl,
+    this.pushTokens = const [],
     this.isPremium = false,
     this.premiumExpiresAt,
     this.favoriteRecipeIds = const [],
@@ -31,10 +35,14 @@ class AppUser {
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
         id: json['\$id'] as String? ?? json['id'] as String,
+        userCode: json['user_code'] as String?,
         name: json['name'] as String,
         email: json['email'] as String,
         phone: json['phone'] as String?,
         photoUrl: json['photo_url'] as String?,
+        pushTokens:
+            (json['push_tokens'] as List<dynamic>?)?.map((e) => '$e').toList() ??
+                const [],
         isPremium: json['is_premium'] as bool? ?? false,
         premiumExpiresAt: json['premium_expires_at'] != null
             ? DateTime.parse(json['premium_expires_at'] as String)
@@ -46,6 +54,7 @@ class AppUser {
       );
 
   Map<String, dynamic> toJson() => {
+        'user_code': userCode,
         'name': name,
         'email': email,
         'phone': phone,
@@ -58,10 +67,12 @@ class AppUser {
 
   AppUser copyWith({
     String? id,
+    String? userCode,
     String? name,
     String? email,
     String? phone,
     String? photoUrl,
+    List<String>? pushTokens,
     bool? isPremium,
     DateTime? premiumExpiresAt,
     List<String>? favoriteRecipeIds,
@@ -69,10 +80,12 @@ class AppUser {
   }) =>
       AppUser(
         id: id ?? this.id,
+        userCode: userCode ?? this.userCode,
         name: name ?? this.name,
         email: email ?? this.email,
         phone: phone ?? this.phone,
         photoUrl: photoUrl ?? this.photoUrl,
+        pushTokens: pushTokens ?? this.pushTokens,
         isPremium: isPremium ?? this.isPremium,
         premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
         favoriteRecipeIds: favoriteRecipeIds ?? this.favoriteRecipeIds,

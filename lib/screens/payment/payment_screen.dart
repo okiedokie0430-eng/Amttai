@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +18,6 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final _txIdCtrl = TextEditingController();
-  int _paymentMethod = 0; // 0 = bank transfer, 1 = social pay
 
   @override
   void dispose() {
@@ -74,51 +73,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(height: 24),
           ...PremiumPlan.values.map((plan) => _planCard(plan, pp, textTheme)),
-          const SizedBox(height: 16),
-
-          // Payment method selector
-          Text(
-            'Төлбөрийн арга',
-            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _methodChip(
-                  icon: Icons.account_balance_outlined,
-                  label: 'Банк шилжүүлэг',
-                  selected: _paymentMethod == 0,
-                  onTap: () => setState(() => _paymentMethod = 0),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _methodChip(
-                  icon: Icons.phone_android_rounded,
-                  label: 'SocialPay',
-                  selected: _paymentMethod == 1,
-                  onTap: () => setState(() => _paymentMethod = 1),
-                ),
-              ),
-            ],
-          ),
-
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: pp.selectedPlan == null || pp.isLoading
                   ? null
-                  : () async {
-                      if (_paymentMethod == 1) {
-                        await _startSocialPay(pp);
-                      } else {
-                        // Bank transfer
-                        final name =
-                            context.read<AuthProvider>().user?.name ?? 'USER';
-                        pp.preparePayment(name);
-                      }
+                  : () {
+                      final name = context.read<AuthProvider>().user?.name ?? 'USER';
+                      pp.preparePayment(name);
                     },
               child: pp.isLoading
                   ? const SizedBox(
@@ -129,84 +92,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : Text(_paymentMethod == 1 ? 'SocialPay-ээр төлөх' : S.next),
+                  : const Text(S.next),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _methodChip({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 0.08)
-              : AppColors.surfaceVariant(context),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border(context),
-            width: selected ? 2 : 0.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.textSecondary(context),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected
-                    ? AppColors.primary
-                    : AppColors.textPrimary(context),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _startSocialPay(PaymentProvider pp) async {
-    final user = context.read<AuthProvider>().user;
-    if (user == null) {
-      _showSnack(S.authError);
-      return;
-    }
-
-    await pp.startSocialPayCheckout(userId: user.id, userName: user.name);
-
-    if (!mounted) return;
-    final error = pp.error;
-    if (error != null && error.isNotEmpty) {
-      _showSnack(error.replaceFirst('Exception: ', ''));
-    }
-  }
-
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -281,18 +170,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return const Center(child: Text('Багц сонгоно уу'));
     }
 
-    if (pp.isSocialPayFlow) {
-      return _socialPayInstructions(pp, textTheme, plan);
-    }
-
-    return _bankTransferInstructions(pp, textTheme, plan);
-  }
-
-  Widget _bankTransferInstructions(
-    PaymentProvider pp,
-    TextTheme textTheme,
-    PremiumPlan plan,
-  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -359,15 +236,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Clipboard.setData(
                       ClipboardData(text: pp.transactionCode ?? ''),
                     );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(S.copied),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    );
+                    _showSnack(S.copied);
                   },
                 ),
               ],
@@ -417,8 +286,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         return;
                       }
 
-                      final userId =
-                          context.read<AuthProvider>().user?.id ?? '';
+                      final userId = context.read<AuthProvider>().user?.id ?? '';
                       await pp.submitPayment(
                         userId: userId,
                         transactionId: txId,
@@ -447,185 +315,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _socialPayInstructions(
-    PaymentProvider pp,
-    TextTheme textTheme,
-    PremiumPlan plan,
-  ) {
-    final status = pp.latestPayment?.status ?? PaymentStatus.pending;
-    final isApproved = status == PaymentStatus.approved;
-    final isRejected = status == PaymentStatus.rejected;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'SocialPay төлбөр',
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'SocialPay апп руу автоматаар шилжиж, мөнгөн дүн болон гүйлгээний утга бөглөгдөнө.',
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant(context),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _infoRow('Банк', AppConfig.bankName),
-                _infoRow('Дансны дугаар', AppConfig.bankAccountNumber),
-                _infoRow('Дансны нэр', AppConfig.bankAccountHolder),
-                _infoRow('Дүн', _formatMNT(plan.priceMNT)),
-                _infoRow('Гүйлгээний утга', pp.socialPayDescription ?? ''),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.open_in_new_rounded),
-              onPressed: () async {
-                final opened = await pp.reopenSocialPay();
-                if (!mounted || opened) return;
-                _showSnack('SocialPay апп нээгдсэнгүй.');
-              },
-              label: const Text('SocialPay нээх'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isApproved
-                  ? AppColors.success.withValues(alpha: 0.12)
-                  : isRejected
-                  ? AppColors.error.withValues(alpha: 0.12)
-                  : AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isApproved
-                      ? 'Төлбөр амжилттай баталгаажсан'
-                      : isRejected
-                      ? 'Төлбөр татгалзсан байна'
-                      : 'Төлбөрийн төлөв шалгаж байна',
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isApproved
-                        ? AppColors.success
-                        : isRejected
-                        ? AppColors.error
-                        : AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  pp.isWatchdogActive
-                      ? 'Автомат хяналт идэвхтэй: ${_watchdogLabel(pp.watchdogRemainingSeconds)}'
-                      : 'Автомат хяналт зогссон. Доорх товчоор гараар шалгана уу.',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (pp.error != null && pp.error!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+  Widget _infoRow(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Text(
-              pp.error!.replaceFirst('Exception: ', ''),
-              style: textTheme.bodySmall?.copyWith(color: AppColors.error),
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary(context),
+              ),
+            ),
+            Flexible(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
             ),
           ],
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: pp.isLoading
-                  ? null
-                  : () async {
-                      final userId = context.read<AuthProvider>().user?.id;
-                      if (userId == null) {
-                        _showSnack(S.authError);
-                        return;
-                      }
-
-                      await pp.checkSocialPayStatus(userId);
-                      if (!mounted) return;
-                      final error = pp.error;
-                      if (error != null && error.isNotEmpty) {
-                        _showSnack(error.replaceFirst('Exception: ', ''));
-                      }
-                    },
-              child: pp.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Одоо шалгах'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Код: ${pp.transactionCode ?? '-'}',
-            style: textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _watchdogLabel(int seconds) {
-    final min = seconds ~/ 60;
-    final sec = seconds % 60;
-    final secStr = sec < 10 ? '0$sec' : '$sec';
-    return '$min:$secStr';
-  }
-
-  Widget _infoRow(String label, String value) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary(context),
-          ),
         ),
-        Flexible(
-          child: Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 
   Widget _confirmation(PaymentProvider pp, TextTheme textTheme) {
     final status = pp.latestPayment?.status;
@@ -642,22 +353,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
               success
                   ? Icons.check_circle_rounded
                   : rejected
-                  ? Icons.cancel_rounded
-                  : Icons.hourglass_top_rounded,
+                      ? Icons.cancel_rounded
+                      : Icons.hourglass_top_rounded,
               size: 72,
               color: success
                   ? AppColors.success
                   : rejected
-                  ? AppColors.error
-                  : AppColors.primary,
+                      ? AppColors.error
+                      : AppColors.primary,
             ),
             const SizedBox(height: 24),
             Text(
               success
                   ? S.paymentSuccess
                   : rejected
-                  ? S.paymentFailed
-                  : S.paymentPending,
+                      ? S.paymentFailed
+                      : S.paymentPending,
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -667,8 +378,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
               success
                   ? 'Таны премиум эрх идэвхжлээ!'
                   : rejected
-                  ? 'Төлбөрийн баталгаажуулалт амжилтгүй боллоо. Дахин оролдоно уу.'
-                  : 'Таны төлбөр админ-аар баталгаажих болно. Та хэсэг хүлээнэ үү.',
+                      ? 'Төлбөрийн баталгаажуулалт амжилтгүй боллоо. Дахин оролдоно уу.'
+                      : 'Таны төлбөр админ-аар баталгаажих болно. Та хэсэг хүлээнэ үү.',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary(context),
@@ -699,11 +410,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   String _formatMNT(int amount) {
     final str = amount.toString();
     final buffer = StringBuffer();
     for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) buffer.write(',');
+      if (i > 0 && (str.length - i) % 3 == 0) {
+        buffer.write(',');
+      }
       buffer.write(str[i]);
     }
     return buffer.toString();

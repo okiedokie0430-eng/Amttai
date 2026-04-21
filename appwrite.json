@@ -1,32 +1,27 @@
 {
-  "projectId": "amttai",
-  "functions": [
-    {
-      "$id": "delete-account",
-      "name": "delete-account",
-      "runtime": "node-18.0",
-      "execute": ["users"],
-      "entrypoint": "src/main.js",
-      "path": "appwrite-functions/delete-account",
-      "commands": "npm install"
-    },
-    {
-      "$id": "socialpay-create-checkout",
-      "name": "socialpay-create-checkout",
-      "runtime": "node-18.0",
-      "execute": ["users"],
-      "entrypoint": "src/main.js",
-      "path": "appwrite-functions/socialpay-create-checkout",
-      "commands": "npm install"
-    },
-    {
-      "$id": "socialpay-webhook",
-      "name": "socialpay-webhook",
-      "runtime": "node-18.0",
-      "execute": ["any"],
-      "entrypoint": "src/main.js",
-      "path": "appwrite-functions/socialpay-webhook",
-      "commands": "npm install"
-    }
-  ]
+    "projectId": "amttai",
+    "functions": [
+        {
+            "$id": "delete-account",
+            "name": "delete-account",
+            "runtime": "node-18.0",
+            "execute": [
+                "users"
+            ],
+            "entrypoint": "src/main.js",
+            "path": "appwrite-functions/delete-account",
+            "commands": "npm install"
+        },
+        {
+            "$id": "broadcast-push",
+            "name": "broadcast-push",
+            "runtime": "node-18.0",
+            "execute": [
+                "users"
+            ],
+            "entrypoint": "src/main.js",
+            "path": "appwrite-functions/broadcast-push",
+            "commands": "npm install"
+        }
+    ]
 }

@@ -1,13 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'user_avatar.dart';
 
 /// Left-side drawer with profile info + menu items.
 class AppDrawer extends StatelessWidget {
@@ -65,45 +64,11 @@ class AppDrawer extends StatelessWidget {
                     child: Row(
                       children: [
                         // Profile avatar with actual image
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.2),
-                                blurRadius: 16,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: user?.photoUrl != null &&
-                                    user!.photoUrl!.isNotEmpty
-                                ? (user.photoUrl!.endsWith('.json')
-                                    ? Transform.scale(
-                                        scale: 1.5,
-                                        child: Lottie.asset(user.photoUrl!, fit: BoxFit.cover, width: 56, height: 56),
-                                      )
-                                    : CachedNetworkImage(
-                                        imageUrl: user.photoUrl!,
-                                        fit: BoxFit.cover,
-                                        width: 56,
-                                        height: 56,
-                                        placeholder: (_, __) =>
-                                            _avatarInitial(user.name, textTheme),
-                                        errorWidget: (_, __, ___) =>
-                                            _avatarInitial(user.name, textTheme),
-                                      ))
-                                : _avatarInitial(
-                                    user?.name ?? '', textTheme),
-                          ),
+                        UserAvatar(
+                          photoUrl: user?.photoUrl,
+                          name: user?.name,
+                          isPremium: auth.hasPremium,
+                          size: 56,
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -125,11 +90,14 @@ class AppDrawer extends StatelessWidget {
                                   // Premium / Free badge next to name
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: auth.hasPremium
-                                          ? AppColors.primary
-                                              .withValues(alpha: 0.15)
+                                          ? AppColors.primary.withValues(
+                                              alpha: 0.15,
+                                            )
                                           : AppColors.border(context),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
@@ -170,114 +138,116 @@ class AppDrawer extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 24),
-            Divider(color: AppColors.border(context), height: 1),
-            const SizedBox(height: 8),
+                Divider(color: AppColors.border(context), height: 1),
+                const SizedBox(height: 8),
 
-            // ── Menu items ──
-            _tile(
-              context,
-              Icons.workspace_premium_outlined,
-              S.premiumTitle,
-              subtitle: auth.hasPremium ? S.activePremium : S.noPremium,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/payment');
-              },
-            ),
-
-            const SizedBox(height: 4),
-
-            _tile(
-              context,
-              themeProvider.isDark
-                  ? Icons.dark_mode_rounded
-                  : Icons.light_mode_rounded,
-              S.darkMode,
-              trailing: Switch.adaptive(
-                value: themeProvider.isDark,
-                activeTrackColor: AppColors.primary,
-                onChanged: (_) => themeProvider.toggle(),
-              ),
-            ),
-
-            _tile(
-              context,
-              Icons.notifications_outlined,
-              S.notifications,
-              onTap: () {},
-            ),
-
-            _tile(
-              context,
-              Icons.settings_outlined,
-              S.settings,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/settings');
-              },
-            ),
-
-            const SizedBox(height: 8),
-            Divider(color: AppColors.border(context), height: 1),
-            const SizedBox(height: 8),
-
-            _tile(
-              context,
-              Icons.headset_mic_outlined,
-              S.customerService,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/support');
-              },
-            ),
-
-            _tile(
-              context,
-              Icons.feedback_outlined,
-              S.leaveFeedback,
-              onTap: () {},
-            ),
-
-            const Spacer(),
-
-            // ── Logout ──
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () async {
+                // ── Menu items ──
+                _tile(
+                  context,
+                  Icons.workspace_premium_outlined,
+                  S.premiumTitle,
+                  subtitle: auth.hasPremium ? S.activePremium : S.noPremium,
+                  onTap: () {
                     Navigator.pop(context);
-                    await auth.logout();
-                    if (context.mounted) context.go('/welcome');
+                    context.push('/premium');
                   },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                    side: BorderSide(
-                        color: AppColors.error.withValues(alpha: 0.3)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text(
-                    S.logout,
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+
+                const SizedBox(height: 4),
+
+                _tile(
+                  context,
+                  themeProvider.isDark
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded,
+                  S.darkMode,
+                  trailing: Switch.adaptive(
+                    value: themeProvider.isDark,
+                    activeTrackColor: AppColors.primary,
+                    onChanged: (_) => themeProvider.toggle(),
                   ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 12),
-
-            Center(
-              child: Text(
-                '${S.privacyPolicy}  ·  ${S.termsOfService}',
-                style: textTheme.bodySmall?.copyWith(
-                  color: AppColors.textTertiary(context),
-                  fontSize: 11,
+                _tile(
+                  context,
+                  Icons.notifications_outlined,
+                  S.notifications,
+                  onTap: () {},
                 ),
-              ),
-            ),
+
+                _tile(
+                  context,
+                  Icons.settings_outlined,
+                  S.settings,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/settings');
+                  },
+                ),
+
+                const SizedBox(height: 8),
+                Divider(color: AppColors.border(context), height: 1),
+                const SizedBox(height: 8),
+
+                _tile(
+                  context,
+                  Icons.headset_mic_outlined,
+                  S.customerService,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/support');
+                  },
+                ),
+
+                _tile(
+                  context,
+                  Icons.feedback_outlined,
+                  S.leaveFeedback,
+                  onTap: () {},
+                ),
+
+                const Spacer(),
+
+                // ── Logout ──
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await auth.logout();
+                        if (context.mounted) context.go('/welcome');
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        side: BorderSide(
+                          color: AppColors.error.withValues(alpha: 0.3),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        S.logout,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Center(
+                  child: Text(
+                    '${S.privacyPolicy}  ·  ${S.termsOfService}',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textTertiary(context),
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
 
                 const SizedBox(height: 16),
               ],
@@ -297,44 +267,35 @@ class AppDrawer extends StatelessWidget {
     Widget? trailing,
   }) {
     return ListTile(
-      leading: Icon(icon,
-          size: 22, color: AppColors.textPrimary(context)),
-      title: Text(title,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(fontWeight: FontWeight.w500)),
+      leading: Icon(icon, size: 22, color: AppColors.textPrimary(context)),
+      title: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+      ),
       subtitle: subtitle != null
-          ? Text(subtitle,
+          ? Text(
+              subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(context),
-                  ))
+                color: AppColors.textSecondary(context),
+              ),
+            )
           : null,
-      trailing: trailing ??
+      trailing:
+          trailing ??
           (onTap != null
-              ? Icon(Icons.chevron_right_rounded,
-                  size: 20, color: AppColors.textTertiary(context))
+              ? Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppColors.textTertiary(context),
+                )
               : null),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       onTap: onTap,
       dense: true,
       visualDensity: const VisualDensity(vertical: 0),
-    );
-  }
-
-  Widget _avatarInitial(String name, TextTheme textTheme) {
-    return Container(
-      color: AppColors.primary.withValues(alpha: 0.15),
-      child: Center(
-        child: Text(
-          name.isNotEmpty ? name[0].toUpperCase() : '?',
-          style: textTheme.titleLarge?.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
     );
   }
 }
