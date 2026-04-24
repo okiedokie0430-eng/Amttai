@@ -362,7 +362,12 @@ class PushNotificationService {
       return true;
     }
 
-    final recipeRoute = RegExp(r'^/recipe/[A-Za-z0-9._-]{1,128}$');
+    final recipeId = normalized.replaceFirst('/recipe/', '');
+    if (recipeId.contains('..')) {
+      return false;
+    }
+
+    final recipeRoute = RegExp(r'^/recipe/[A-Za-z0-9_-]{1,128}$');
     return recipeRoute.hasMatch(normalized);
   }
 

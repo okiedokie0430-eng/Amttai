@@ -40,10 +40,6 @@ function getEffectiveSessionSecret() {
   return '';
 }
 
-function createPasswordFingerprint() {
-  return crypto.createHash('sha256').update(`amttai-admin:${getEffectiveAdminPassword()}`).digest('hex');
-}
-
 function hmac(value: string) {
   return crypto.createHmac('sha256', getEffectiveSessionSecret()).update(value).digest('hex');
 }
@@ -61,7 +57,7 @@ function timingSafeEqualString(a: string, b: string) {
 function buildToken() {
   const issuedAt = Math.floor(Date.now() / 1000);
   const nonce = crypto.randomBytes(16).toString('hex');
-  const payload = `${issuedAt}.${nonce}.${createPasswordFingerprint()}`;
+  const payload = `${issuedAt}.${nonce}`;
   const signature = hmac(payload);
   return `v1.${issuedAt}.${nonce}.${signature}`;
 }
@@ -92,7 +88,7 @@ function getStableClientKey(ip?: string | null) {
 }
 
 function buildExpectedSignature(issuedAt: number, nonce: string) {
-  return hmac(`${issuedAt}.${nonce}.${createPasswordFingerprint()}`);
+  return hmac(`${issuedAt}.${nonce}`);
 }
 
 export function getClientIp(request: Request) {

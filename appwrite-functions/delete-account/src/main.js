@@ -1,5 +1,8 @@
 import { Client, Databases, Storage, Users, Query } from 'node-appwrite';
 
+const MAX_DOCUMENT_DELETION_PASSES = 50;
+const FILE_SCAN_PAGE_SIZE = 100;
+
 /**
  * Appwrite Function: delete-account
  *
@@ -87,10 +90,12 @@ export default async ({ req, res, log, error }) => {
   for (const col of collections) {
     try {
       let docsDeleted = 0;
-      while (true) {
+      let pass = 0;
+      while (pass < MAX_DOCUMENT_DELETION_PASSES) {
+        pass += 1;
         const query = col.queryField === '$id'
-          ? [Query.equal('$id', normalizedUserId), Query.limit(100)]
-          : [Query.equal(col.queryField, normalizedUserId), Query.limit(100)];
+          ? [Query.equal('$id', normalizedUserId), Query.limit(FILE_SCAN_PAGE_SIZE)]
+          : [Query.equal(col.queryField, normalizedUserId), Query.limit(FILE_SCAN_PAGE_SIZE)];
         const docs = await databases.listDocuments(databaseId, col.id, query);
         if (!Array.isArray(docs.documents) || docs.documents.length === 0) {
           break;
@@ -122,30 +127,41 @@ export default async ({ req, res, log, error }) => {
   const storageBuckets = ['profile_photos', 'payment_screenshots'];
   for (const bucketId of storageBuckets) {
     try {
-      let filesDeleted = 0;
+      const matchingFileIds = [];
+      let offset = 0;
       while (true) {
-        const files = await storage.listFiles(bucketId, [Query.limit(100)]);
+        const files = await storage.listFiles(
+          bucketId,
+          [Query.limit(FILE_SCAN_PAGE_SIZE), Query.offset(offset)]
+        );
         const listedFiles = Array.isArray(files.files) ? files.files : [];
         if (listedFiles.length === 0) {
           break;
         }
 
-        let deletedInPass = 0;
         for (const file of listedFiles) {
           if (file.$id.includes(normalizedUserId) || file.name.includes(normalizedUserId)) {
-            try {
-              await storage.deleteFile(bucketId, file.$id);
-              filesDeleted += 1;
-              deletedInPass += 1;
-              log(`Deleted file ${file.$id} from ${bucketId}`);
-            } catch (e) {
-              error(`Failed to delete file ${file.$id} from ${bucketId}: ${e.message}`);
-            }
+            matchingFileIds.push(file.$id);
           }
         }
 
-        if (deletedInPass === 0) {
+        offset += listedFiles.length;
+        if (listedFiles.length < FILE_SCAN_PAGE_SIZE) {
           break;
+        }
+      }
+
+      let filesDeleted = 0;
+      for (const fileId of matchingFileIds) {
+        try {
+          await storage.deleteFile(bucketId, fileId);
+          filesDeleted += 1;
+          log(`Deleted file ${fileId} from ${bucketId}`);
+        } catch (e) {
+          const errorCode = e && typeof e === 'object' ? e.code : null;
+          if (errorCode !== 404) {
+            error(`Failed to delete file ${fileId} from ${bucketId}: ${e.message}`);
+          }
         }
       }
 
