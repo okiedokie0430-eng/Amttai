@@ -252,11 +252,21 @@ class AuthService {
 
   Account _createScopedAccount({required String sessionId}) {
     final normalized = sessionId.trim();
+    if (!AppConfig.allowSelfSignedCertificates &&
+        !AppConfig.isAppwriteEndpointSecure) {
+      throw StateError(
+        'APPWRITE_ENDPOINT must use HTTPS unless APPWRITE_ALLOW_SELF_SIGNED=true is explicitly set.',
+      );
+    }
+
     final client = Client()
       ..setEndpoint(AppConfig.appwriteEndpoint)
       ..setProject(AppConfig.appwriteProjectId)
-      ..setSelfSigned(status: true)
       ..setSession(normalized);
+
+    if (AppConfig.allowSelfSignedCertificates) {
+      client.setSelfSigned(status: true);
+    }
 
     return Account(client);
   }

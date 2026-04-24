@@ -24,25 +24,50 @@ export default async ({ req, res, log, error }) => {
     return res.json({ ok: false, message: 'Invalid request body' }, 400);
   }
 
-  if (!userId) {
+  const normalizedUserId = String(userId || '').trim();
+  if (!normalizedUserId) {
     return res.json({ ok: false, message: 'userId is required' }, 400);
+  }
+
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(normalizedUserId)) {
+    return res.json({ ok: false, message: 'Invalid userId format' }, 400);
   }
 
   // ── Verify the caller is the same user (security) ──
   // req.headers contains x-appwrite-user-id when called by an authenticated user
-  const callerId = req.headers['x-appwrite-user-id'];
-  if (callerId && callerId !== userId) {
-    error(`Security: caller ${callerId} tried to delete user ${userId}`);
+  const callerIdHeader = req.headers['x-appwrite-user-id'];
+  const callerId = Array.isArray(callerIdHeader) ? callerIdHeader[0] : callerIdHeader;
+  const normalizedCallerId = String(callerId || '').trim();
+  if (!normalizedCallerId) {
+    return res.json({ ok: false, message: 'Authenticated user is required' }, 401);
+  }
+
+  if (normalizedCallerId !== normalizedUserId) {
+    error(`Security: caller ${normalizedCallerId} tried to delete user ${normalizedUserId}`);
     return res.json({ ok: false, message: 'Unauthorized' }, 403);
   }
 
-  log(`Starting account deletion for user: ${userId}`);
+  log(`Starting account deletion for user: ${normalizedUserId}`);
 
   // ── Init server SDK ──
+  const endpoint = String(process.env.APPWRITE_ENDPOINT || '').trim();
+  const projectId = String(process.env.APPWRITE_PROJECT_ID || '').trim();
+  const apiKey = String(process.env.APPWRITE_API_KEY || '').trim();
+
+  if (!endpoint || !projectId || !apiKey) {
+    return res.json(
+      {
+        ok: false,
+        message: 'Missing required server configuration.'
+      },
+      500
+    );
+  }
+
   const client = new Client()
-    .setEndpoint(process.env.APPWRITE_ENDPOINT)
-    .setProject(process.env.APPWRITE_PROJECT_ID)
-    .setKey(process.env.APPWRITE_API_KEY);
+    .setEndpoint(endpoint)
+    .setProject(projectId)
+    .setKey(apiKey);
 
   const databases = new Databases(client);
   const storage = new Storage(client);
@@ -61,20 +86,33 @@ export default async ({ req, res, log, error }) => {
   // ── 1. Delete documents from all collections ──
   for (const col of collections) {
     try {
-      const query = col.queryField === '$id'
-        ? [Query.equal('$id', userId), Query.limit(500)]
-        : [Query.equal(col.queryField, userId), Query.limit(500)];
+      let docsDeleted = 0;
+      while (true) {
+        const query = col.queryField === '$id'
+          ? [Query.equal('$id', normalizedUserId), Query.limit(100)]
+          : [Query.equal(col.queryField, normalizedUserId), Query.limit(100)];
+        const docs = await databases.listDocuments(databaseId, col.id, query);
+        if (!Array.isArray(docs.documents) || docs.documents.length === 0) {
+          break;
+        }
 
-      const docs = await databases.listDocuments(databaseId, col.id, query);
-      log(`Found ${docs.documents.length} docs in '${col.id}'`);
+        let deletedInPass = 0;
+        for (const doc of docs.documents) {
+          try {
+            await databases.deleteDocument(databaseId, col.id, doc.$id);
+            docsDeleted += 1;
+            deletedInPass += 1;
+          } catch (e) {
+            error(`Failed to delete doc ${doc.$id} from ${col.id}: ${e.message}`);
+          }
+        }
 
-      for (const doc of docs.documents) {
-        try {
-          await databases.deleteDocument(databaseId, col.id, doc.$id);
-        } catch (e) {
-          error(`Failed to delete doc ${doc.$id} from ${col.id}: ${e.message}`);
+        if (deletedInPass === 0) {
+          break;
         }
       }
+
+      log(`Deleted ${docsDeleted} docs in '${col.id}'`);
     } catch (e) {
       error(`Error querying collection '${col.id}': ${e.message}`);
     }
@@ -84,17 +122,34 @@ export default async ({ req, res, log, error }) => {
   const storageBuckets = ['profile_photos', 'payment_screenshots'];
   for (const bucketId of storageBuckets) {
     try {
-      const files = await storage.listFiles(bucketId, [Query.limit(200)]);
-      for (const file of files.files) {
-        if (file.$id.includes(userId) || file.name.includes(userId)) {
-          try {
-            await storage.deleteFile(bucketId, file.$id);
-            log(`Deleted file ${file.$id} from ${bucketId}`);
-          } catch (e) {
-            error(`Failed to delete file ${file.$id} from ${bucketId}: ${e.message}`);
+      let filesDeleted = 0;
+      while (true) {
+        const files = await storage.listFiles(bucketId, [Query.limit(100)]);
+        const listedFiles = Array.isArray(files.files) ? files.files : [];
+        if (listedFiles.length === 0) {
+          break;
+        }
+
+        let deletedInPass = 0;
+        for (const file of listedFiles) {
+          if (file.$id.includes(normalizedUserId) || file.name.includes(normalizedUserId)) {
+            try {
+              await storage.deleteFile(bucketId, file.$id);
+              filesDeleted += 1;
+              deletedInPass += 1;
+              log(`Deleted file ${file.$id} from ${bucketId}`);
+            } catch (e) {
+              error(`Failed to delete file ${file.$id} from ${bucketId}: ${e.message}`);
+            }
           }
         }
+
+        if (deletedInPass === 0) {
+          break;
+        }
       }
+
+      log(`Deleted ${filesDeleted} files from bucket '${bucketId}'`);
     } catch (e) {
       error(`Error listing files in bucket '${bucketId}': ${e.message}`);
     }
@@ -102,8 +157,8 @@ export default async ({ req, res, log, error }) => {
 
   // ── 3. Permanently delete the auth user ──
   try {
-    await users.delete(userId);
-    log(`Auth user ${userId} permanently deleted`);
+    await users.delete(normalizedUserId);
+    log(`Auth user ${normalizedUserId} permanently deleted`);
   } catch (e) {
     error(`Failed to delete auth user: ${e.message}`);
     return res.json({
@@ -112,6 +167,6 @@ export default async ({ req, res, log, error }) => {
     }, 500);
   }
 
-  log(`Account deletion complete for user: ${userId}`);
+  log(`Account deletion complete for user: ${normalizedUserId}`);
   return res.json({ ok: true, message: 'Account permanently deleted' });
 };

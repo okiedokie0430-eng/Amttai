@@ -36,6 +36,7 @@ Optional security variable:
 - `BROADCAST_PUSH_SECRET`
 
 If `BROADCAST_PUSH_SECRET` is set, the payload must include `secret`.
+For stronger protection, configure it in production so only trusted callers can trigger broadcasts.
 
 ### Broadcast payload shape
 
@@ -62,6 +63,12 @@ flutter run \
   --dart-define=FIREBASE_MESSAGING_SENDER_ID="..." \
   --dart-define=FIREBASE_ANDROID_APP_ID="..." \
   --dart-define=APPWRITE_PUSH_PROVIDER_ID="..."
+```
+
+Optional Appwrite TLS override for local development only:
+
+```bash
+--dart-define=APPWRITE_ALLOW_SELF_SIGNED=true
 ```
 
 Android-only note: this project currently registers Appwrite push targets only on Android.

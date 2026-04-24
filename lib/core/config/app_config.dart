@@ -14,6 +14,10 @@ class AppConfig {
     'APPWRITE_PROJECT_ID',
     defaultValue: 'amttai',
   );
+  static const bool allowSelfSignedCertificates = bool.fromEnvironment(
+    'APPWRITE_ALLOW_SELF_SIGNED',
+    defaultValue: false,
+  );
   static const String appwritePushProviderId = String.fromEnvironment(
     'APPWRITE_PUSH_PROVIDER_ID',
     defaultValue: '',
@@ -91,6 +95,15 @@ class AppConfig {
         firebaseProjectId.isNotEmpty &&
         firebaseMessagingSenderId.isNotEmpty &&
         firebaseIosAppId.isNotEmpty;
+  }
+
+  static bool get isAppwriteEndpointSecure {
+    final uri = Uri.tryParse(appwriteEndpoint.trim());
+    if (uri == null) {
+      return false;
+    }
+
+    return uri.scheme.toLowerCase() == 'https' && uri.host.trim().isNotEmpty;
   }
 
   // ── Premium Plan Prices (MNT) ─────────────────────────────

@@ -310,7 +310,7 @@ class PushNotificationService {
 
   String? _routeFromData(Map<String, dynamic> data) {
     final rawRoute = (data['route'] ?? data['path'] ?? '').toString().trim();
-    if (rawRoute.startsWith('/')) {
+    if (_isAllowedInAppRoute(rawRoute)) {
       return rawRoute;
     }
 
@@ -341,6 +341,31 @@ class PushNotificationService {
     }
   }
 
+  bool _isAllowedInAppRoute(String route) {
+    final normalized = route.trim();
+    if (!normalized.startsWith('/')) {
+      return false;
+    }
+
+    final safeStaticRoutes = <String>{
+      '/home',
+      '/search',
+      '/pantry',
+      '/profile',
+      '/support',
+      '/premium',
+      '/payment',
+      '/settings',
+    };
+
+    if (safeStaticRoutes.contains(normalized)) {
+      return true;
+    }
+
+    final recipeRoute = RegExp(r'^/recipe/[A-Za-z0-9._-]{1,128}$');
+    return recipeRoute.hasMatch(normalized);
+  }
+
   Future<void> syncForUser(String userId) async {
     if (!Platform.isAndroid) {
       _logUnsupportedPlatformOnce();
@@ -368,11 +393,6 @@ class PushNotificationService {
         _scheduleTokenSyncRetry(userId);
         return;
       }
-
-      final preview = token.length <= 12
-          ? token
-          : '${token.substring(0, 6)}...${token.substring(token.length - 6)}';
-      debugPrint('[Push] Android FCM token acquired for user $userId: $preview');
 
       _tokenRetryTimer?.cancel();
       _pendingRetryUserId = null;

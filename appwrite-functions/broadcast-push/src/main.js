@@ -282,12 +282,26 @@ export default async ({ req, res, log, error }) => {
     const body = String(payload.body || '').trim();
     const data = toFlatStringMap(payload.data);
     const action = String(payload.action || '').trim() || undefined;
+    const callerIdHeader = req.headers['x-appwrite-user-id'];
+    const callerId = Array.isArray(callerIdHeader) ? callerIdHeader[0] : callerIdHeader;
+    const normalizedCallerId = String(callerId || '').trim();
 
     if (!title || !body) {
       return res.json({ ok: false, message: 'title and body are required.' }, 400);
     }
 
+    if (title.length > 120 || body.length > 1000) {
+      return res.json({ ok: false, message: 'title or body exceeds allowed length.' }, 400);
+    }
+
     const sharedSecret = String(process.env.BROADCAST_PUSH_SECRET || '').trim();
+    if (!normalizedCallerId && !sharedSecret) {
+      return res.json(
+        { ok: false, message: 'BROADCAST_PUSH_SECRET must be configured for unauthenticated executions.' },
+        500
+      );
+    }
+
     if (sharedSecret) {
       const incomingSecret = String(payload.secret || '').trim();
       if (incomingSecret !== sharedSecret) {

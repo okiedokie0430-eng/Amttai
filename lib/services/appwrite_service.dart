@@ -30,10 +30,20 @@ class AppwriteService {
   /// This is used after logout to ensure stale auth headers/sessions are not
   /// carried into a fresh login attempt.
   void reset() {
+    if (!AppConfig.allowSelfSignedCertificates &&
+        !AppConfig.isAppwriteEndpointSecure) {
+      throw StateError(
+        'APPWRITE_ENDPOINT must use HTTPS unless APPWRITE_ALLOW_SELF_SIGNED=true is explicitly set.',
+      );
+    }
+
     client = Client()
       ..setEndpoint(AppConfig.appwriteEndpoint)
-      ..setProject(AppConfig.appwriteProjectId)
-      ..setSelfSigned(status: true); // remove in production
+      ..setProject(AppConfig.appwriteProjectId);
+
+    if (AppConfig.allowSelfSignedCertificates) {
+      client.setSelfSigned(status: true);
+    }
 
     account = Account(client);
     databases = Databases(client);
