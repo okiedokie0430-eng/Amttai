@@ -3,10 +3,9 @@ enum PaymentStatus { pending, approved, rejected }
 
 /// Premium plan duration.
 enum PremiumPlan {
-  oneMonth(1, 9000, '1 Сар'),
-  threeMonth(3, 21000, '3 Сар'),
-  sixMonth(6, 36000, '6 Сар'),
-  oneYear(12, 120000, '1 Жил');
+  oneMonth(1, 6000, '1 Сар'),
+  threeMonth(3, 15000, '3 Сар'),
+  oneYear(12, 38000, '1 Жил');
 
   final int months;
   final int priceMNT;

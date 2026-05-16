@@ -1,0 +1,10 @@
+{
+  "name": "delete-account",
+  "version": "1.0.0",
+  "description": "Permanently delete an Amttai user account and all associated data",
+  "type": "module",
+  "main": "src/main.js",
+  "dependencies": {
+    "node-appwrite": "^13.0.0"
+  }
+}

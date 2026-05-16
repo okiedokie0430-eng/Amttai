@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/recipe.dart';
 import '../../screens/auth/forgot_password_screen.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
@@ -12,6 +13,7 @@ import '../../screens/payment/payment_screen.dart';
 import '../../screens/profile/profile_edit_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../../screens/recipe/recipe_detail_screen.dart';
+import '../../screens/recipe/step_by_step_screen.dart';
 import '../../screens/search/search_screen.dart';
 import '../../screens/settings/account_settings_screen.dart';
 import '../../screens/settings/settings_screen.dart';
@@ -142,23 +144,28 @@ class AppRouter {
               recipeId: state.pathParameters['id']!,
               heroPrefix: heroPrefix,
             ),
-            transitionDuration: const Duration(milliseconds: 600),
-            reverseTransitionDuration: const Duration(milliseconds: 400),
+            transitionDuration: const Duration(milliseconds: 350),
+            reverseTransitionDuration: const Duration(milliseconds: 300),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   final fadeIn = CurvedAnimation(
                     parent: animation,
-                    curve: const Interval(0.0, 0.2, curve: Curves.easeOut),
-                    reverseCurve: const Interval(
-                      0.5,
-                      0.9,
-                      curve: Curves.easeIn,
-                    ),
+                    curve: Curves.easeOut,
+                    reverseCurve: Curves.easeIn,
                   );
                   return FadeTransition(opacity: fadeIn, child: child);
                 },
           );
         },
+        routes: [
+          GoRoute(
+            path: 'steps',
+            pageBuilder: (context, state) {
+              final recipe = state.extra as Recipe;
+              return _slide(StepByStepScreen(recipe: recipe), state);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/premium',

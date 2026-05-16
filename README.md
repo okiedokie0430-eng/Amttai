@@ -2,71 +2,104 @@
 
 Mongolian premium recipe app built with Flutter + Appwrite.
 
-## Payment Flow (manual transfer)
+## SocialPay Flow (implemented)
 
-1. User selects a premium plan.
-2. App generates a unique transaction code.
-3. User sends bank transfer with the generated code in transfer description.
-4. User submits transaction/reference ID in app.
-5. Admin verifies payment and approves/rejects from admin console.
-6. On approval, premium access is extended in the users collection.
+1. User selects plan and payment method: Bank transfer or SocialPay.
+2. For SocialPay:
+	 - App creates a pending payment document in Appwrite.
+	 - App generates a unique transaction code.
+	 - App calls Appwrite Function `socialpay-create-checkout`.
+	 - Function returns provider-signed payload (`deeplink`, `qPay_QRcode`, or `key`).
+	 - App opens SocialPay app using `socialpay-payment://...` deeplink.
+3. App starts watchdog polling to check payment status updates.
+4. Appwrite webhook function updates payment status when callback arrives.
+5. On approved status, user premium is auto-extended in users collection.
 
-## Push Notification Broadcast
+## Flutter Run Config
 
-The project includes an Appwrite function `broadcast-push` that uses Appwrite Messaging to queue push notifications to all registered Appwrite push targets.
+You can configure SocialPay checkout function and watchdog without changing code:
 
-### Function path
+```bash
+flutter run \
+	--dart-define=SOCIALPAY_CHECKOUT_FUNCTION_ID="socialpay-create-checkout" \
+	--dart-define=SOCIALPAY_DESCRIPTION_PREFIX="AMTTAI-" \
+	--dart-define=SOCIALPAY_WATCHDOG_TIMEOUT_SECONDS=180 \
+	--dart-define=SOCIALPAY_WATCHDOG_POLL_SECONDS=5 \
+	--dart-define=SOCIALPAY_ALLOW_UNSAFE_DIRECT_TEMPLATE=false
+```
 
-- `appwrite-functions/broadcast-push/src/main.js`
+Optional unsafe fallback (not recommended, many SocialPay versions reject it):
 
-### Required function environment variables
+```bash
+--dart-define=SOCIALPAY_ALLOW_UNSAFE_DIRECT_TEMPLATE=true \
+--dart-define=SOCIALPAY_DEEPLINK_TEMPLATE="socialpay-payment://transfer?to={to}&amount={amount}&description={description}"
+```
+
+Fallback template placeholders:
+
+- `{to}` receiver account
+- `{amount}` amount in MNT
+- `{description}` transaction description
+- `{txCode}` generated transaction code
+
+## Appwrite Requirements
+
+### Collections
+
+- `payments`: needs at least
+	- `user_id` (string)
+	- `plan` (string)
+	- `amount` (integer)
+	- `transaction_code` (string)
+	- `transaction_id` (string)
+	- `status` (string: pending/approved/rejected)
+	- `created_at` (datetime/string)
+	- `verified_at` (datetime/string, optional)
+- `users`: needs at least
+	- `is_premium` (boolean)
+	- `premium_expires_at` (datetime/string, optional)
+
+### Function: socialpay-webhook
+
+Path: `appwrite-functions/socialpay-webhook/src/main.js`
+
+Expected env vars:
 
 - `APPWRITE_ENDPOINT`
 - `APPWRITE_PROJECT_ID`
 - `APPWRITE_API_KEY`
+- `DATABASE_ID` (default: `amttai_db`)
+- `PAYMENTS_COLLECTION` (default: `payments`)
+- `USERS_COLLECTION` (default: `users`)
+- `SOCIALPAY_WEBHOOK_SECRET` (optional but recommended)
 
-Optional broadcast behavior variables:
+Security note:
 
-- `APPWRITE_PUSH_PROVIDER_ID` (recommended: your Appwrite FCM provider ID)
-- `BROADCAST_USER_PAGE_SIZE` (default: `100`)
-- `BROADCAST_TARGET_BATCH_SIZE` (default: `100`)
+- Configure SocialPay to send a shared secret in one of these headers:
+	- `x-socialpay-signature`
+	- `x-signature`
+	- `authorization`
 
-Optional security variable:
+### Function: socialpay-create-checkout
 
-- `BROADCAST_PUSH_SECRET`
+Path: `appwrite-functions/socialpay-create-checkout/src/main.js`
 
-If `BROADCAST_PUSH_SECRET` is set, the payload must include `secret`.
+This function must return one of:
 
-### Broadcast payload shape
+- `deeplink`
+- `qPay_QRcode`
+- `key`
 
-```json
-{
-  "title": "Шинэ жор нэмэгдлээ",
-  "body": "Өнөөдрийн шинэ жорыг үзээрэй.",
-  "data": {
-    "screen": "home",
-    "source": "admin-broadcast"
-  }
-}
-```
+See detailed setup in:
 
-## Flutter run configuration for push
+- `appwrite-functions/socialpay-create-checkout/README.md`
 
-Configure Firebase values with dart defines:
+Important notes:
 
-```bash
-flutter run \
-  --dart-define=PUSH_ENABLED=true \
-  --dart-define=FIREBASE_API_KEY="..." \
-  --dart-define=FIREBASE_PROJECT_ID="..." \
-  --dart-define=FIREBASE_MESSAGING_SENDER_ID="..." \
-  --dart-define=FIREBASE_ANDROID_APP_ID="..." \
-  --dart-define=APPWRITE_PUSH_PROVIDER_ID="..."
-```
+- Public SocialPay app builds validate payload/checksum and reject unsigned raw transfer links.
+- If you receive `Invalid checksum`, verify merchant secret and provider request template.
 
-Android-only note: this project currently registers Appwrite push targets only on Android.
-
-## Local checks
+## Local Checks
 
 ```bash
 flutter pub get

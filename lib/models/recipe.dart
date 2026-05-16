@@ -34,12 +34,14 @@ class RecipeStep {
   final String description;
   final String? imageUrl;
   final int? timerSeconds;
+  final List<Ingredient>? ingredients;
 
   const RecipeStep({
     required this.order,
     required this.description,
     this.imageUrl,
     this.timerSeconds,
+    this.ingredients,
   });
 
   factory RecipeStep.fromJson(Map<String, dynamic> json) => RecipeStep(
@@ -57,6 +59,7 @@ class RecipeStep {
           json['duration_seconds'] ??
           json['durationSeconds'],
     ),
+    ingredients: _parseStepIngredients(json['ingredients']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -64,7 +67,37 @@ class RecipeStep {
     'description': description,
     if (imageUrl != null) 'image_url': imageUrl,
     if (timerSeconds != null) 'timer_seconds': timerSeconds,
+    if (ingredients != null)
+      'ingredients': ingredients!.map((i) => i.toJson()).toList(),
   };
+
+  static List<Ingredient>? _parseStepIngredients(dynamic value) {
+    if (value == null) return null;
+    try {
+      if (value is String && value.isNotEmpty) {
+        final decoded = jsonDecode(value);
+        if (decoded is List) {
+          return decoded
+              .map((i) => Ingredient.fromJson(i as Map<String, dynamic>))
+              .toList();
+        }
+      } else if (value is List) {
+        return value
+            .map((i) {
+              if (i is String) {
+                 final decoded = jsonDecode(i);
+                 return Ingredient.fromJson(decoded as Map<String, dynamic>);
+              } else if (i is Map<String, dynamic>) {
+                 return Ingredient.fromJson(i);
+              }
+              return null;
+            })
+            .whereType<Ingredient>()
+            .toList();
+      }
+    } catch (_) {}
+    return null;
+  }
 
   static int _asInt(dynamic value, {int fallback = 0}) {
     if (value is int) return value;

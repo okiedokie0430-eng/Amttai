@@ -85,7 +85,8 @@ class RecipeCard extends StatelessWidget {
             if (enableHero)
               Hero(
                 tag: '${heroPrefix}recipe_image_${recipe.id}',
-                createRectTween: (begin, end) => RectTween(begin: begin, end: end),
+                createRectTween: (begin, end) =>
+                    RectTween(begin: begin, end: end),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: imageLayer,
@@ -101,20 +102,6 @@ class RecipeCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.3),
-                              Colors.black.withValues(alpha: 0.8),
-                            ],
-                            stops: const [0.4, 0.7, 1.0],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                      ),
                       Positioned(
                         top: isLandscape ? 12 : 16,
                         left: isLandscape ? 12 : 16,
@@ -144,7 +131,140 @@ class RecipeCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            if (recipe.isPremium)
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        top: isLandscape ? 8 : 12,
+                        right: isLandscape ? 8 : 12,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            context.read<FavoritesProvider>().toggleFavorite(
+                              recipe.id,
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(isLandscape ? 8 : 10),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.4),
+                            ),
+                            child: Icon(
+                              Icons.favorite_rounded,
+                              size: isLandscape ? 18 : 22,
+                              color: isFavorite
+                                  ? Colors.redAccent
+                                  : Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: isLandscape ? 12 : 16,
+                        left: isLandscape ? 12 : 16,
+                        right: isLandscape ? 12 : 16,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    recipe.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        (isLandscape
+                                                ? textTheme.titleMedium
+                                                : textTheme.titleLarge)
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontSize: isLandscape ? 18 : 24,
+                                              fontWeight: FontWeight.w800,
+                                              height: 1.2,
+                                              letterSpacing: -0.5,
+                                              shadows: const [
+                                                Shadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 4.0,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                  ),
+                                  SizedBox(height: isLandscape ? 4 : 8),
+                                  Row(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.schedule_rounded,
+                                            size: isLandscape ? 14 : 16,
+                                            color: Colors.white,
+                                            shadows: const [
+                                              Shadow(
+                                                color: Colors.black45,
+                                                blurRadius: 3.0,
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${recipe.cookTimeMinutes} мин',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: isLandscape ? 11 : 13,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: const [
+                                                Shadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 3.0,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(width: isLandscape ? 8 : 12),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.local_fire_department_rounded,
+                                            size: isLandscape ? 14 : 16,
+                                            color: Colors.white,
+                                            shadows: const [
+                                              Shadow(
+                                                color: Colors.black45,
+                                                blurRadius: 3.0,
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            recipe.difficulty.toUpperCase(),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: isLandscape ? 11 : 13,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: const [
+                                                Shadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 3.0,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (recipe.isPremium) ...[
+                              const SizedBox(width: 8),
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: isLandscape ? 8 : 10,
@@ -175,101 +295,7 @@ class RecipeCard extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        top: isLandscape ? 8 : 12,
-                        right: recipe.isPremium
-                            ? (isLandscape ? 85 : 100)
-                            : (isLandscape ? 8 : 12),
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            context.read<FavoritesProvider>().toggleFavorite(
-                              recipe.id,
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(isLandscape ? 8 : 10),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.black.withValues(alpha: 0.4),
-                            ),
-                            child: Icon(
-                              Icons.favorite_rounded,
-                              size: isLandscape ? 18 : 22,
-                              color: isFavorite
-                                  ? Colors.redAccent
-                                  : Colors.white70,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: isLandscape ? 12 : 16,
-                        left: isLandscape ? 12 : 16,
-                        right: isLandscape ? 12 : 16,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              recipe.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  (isLandscape
-                                          ? textTheme.titleMedium
-                                          : textTheme.titleLarge)
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.2,
-                                        letterSpacing: -0.5,
-                                      ),
-                            ),
-                            SizedBox(height: isLandscape ? 4 : 8),
-                            Row(
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.schedule_rounded,
-                                      size: isLandscape ? 14 : 16,
-                                      color: Colors.white70,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${recipe.cookTimeMinutes} мин',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: isLandscape ? 11 : 13,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(width: isLandscape ? 8 : 12),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.local_fire_department_rounded,
-                                      size: isLandscape ? 14 : 16,
-                                      color: Colors.white70,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      recipe.difficulty.toUpperCase(),
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: isLandscape ? 11 : 13,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                            ],
                           ],
                         ),
                       ),

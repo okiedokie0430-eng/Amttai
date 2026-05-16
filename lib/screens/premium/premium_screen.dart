@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import '../../core/theme/app_colors.dart';
@@ -16,17 +16,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
   final List<Map<String, dynamic>> _plans = [
     {
       'title': '1 Сар',
-      'price': '15,000 ₮',
+      'price': '6,000 ₮',
       'sub': 'Сард',
     },
     {
       'title': '3 Сар',
-      'price': '40,000 ₮',
+      'price': '15,000 ₮',
       'sub': 'Улиралд',
     },
     {
       'title': '1 Жил',
-      'price': '120,000 ₮',
+      'price': '38,000 ₮',
       'sub': 'Жилд',
     },
   ];
@@ -178,8 +178,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: GestureDetector(
                 onTap: () {
-                  // TODO: Payment transaction logic or navigation
-                  // context.push('/payment');
+                  context.push('/payment');
                 },
                 child: Container(
                   width: double.infinity,

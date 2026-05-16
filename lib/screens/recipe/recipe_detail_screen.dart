@@ -7,7 +7,6 @@ import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/recipe.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
 import '../../widgets/common/shimmer_loader.dart';
@@ -28,8 +27,8 @@ class RecipeDetailScreen extends StatefulWidget {
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Recipe? _recipe;
   bool _loading = true;
-  final Set<int> _checkedIngredients = {};
   bool _queuedPremiumPrompt = false;
+  bool _buttonsVisible = false;
 
   @override
   void initState() {
@@ -43,6 +42,43 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       _loading = false;
     }
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null && route.animation != null) {
+      route.animation!.addStatusListener(_onAnimationStatusChanged);
+      if (route.animation!.status == AnimationStatus.completed) {
+        if (!_buttonsVisible) {
+          _buttonsVisible = true;
+        }
+      }
+    } else {
+      if (!_buttonsVisible) {
+        _buttonsVisible = true;
+      }
+    }
+  }
+
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      if (mounted && !_buttonsVisible) {
+        setState(() => _buttonsVisible = true);
+      }
+    } else if (status == AnimationStatus.reverse) {
+      if (mounted && _buttonsVisible) {
+        setState(() => _buttonsVisible = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final route = ModalRoute.of(context);
+    route?.animation?.removeStatusListener(_onAnimationStatusChanged);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -101,7 +137,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.background(context),
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: [
           // ── Hero image header ──
           SliverAppBar(
@@ -110,23 +146,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             stretch: true,
             backgroundColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 16, top: 4),
-              child: _headerButton(
-                Icons.arrow_back_ios_new_rounded,
-                () => Navigator.pop(context),
+            leading: AnimatedOpacity(
+              opacity: _buttonsVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, top: 4),
+                child: _headerButton(
+                  Icons.arrow_back_ios_new_rounded,
+                  () => Navigator.pop(context),
+                ),
               ),
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16, top: 4),
-                child: _headerIconButton(
-                  icon: Icon(
-                    Icons.favorite_rounded,
-                    size: 22,
-                    color: isFav ? Colors.redAccent : Colors.white70,
+              AnimatedOpacity(
+                opacity: _buttonsVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16, top: 4),
+                  child: _headerIconButton(
+                    icon: Icon(
+                      Icons.favorite_rounded,
+                      size: 22,
+                      color: isFav ? Colors.redAccent : Colors.white70,
+                    ),
+                    onTap: () => fav.toggleFavorite(recipe.id),
                   ),
-                  onTap: () => fav.toggleFavorite(recipe.id),
                 ),
               ),
             ],
@@ -157,6 +201,39 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           tag: '${widget.heroPrefix}recipe_image_${recipe.id}',
                           createRectTween: (begin, end) =>
                               RectTween(begin: begin, end: end),
+                          flightShuttleBuilder: (
+                            flightContext,
+                            animation,
+                            flightDirection,
+                            fromHeroContext,
+                            toHeroContext,
+                          ) {
+                            return AnimatedBuilder(
+                              animation: animation,
+                              builder: (context, child) {
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    24 * (1 - animation.value),
+                                  ),
+                                  child: Material(
+                                    type: MaterialType.transparency,
+                                    child: recipe.imageUrl != null
+                                        ? CachedNetworkImage(
+                                            imageUrl: recipe.imageUrl!,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            fadeInDuration: Duration.zero,
+                                            fadeOutDuration: Duration.zero,
+                                          )
+                                        : Container(
+                                            color: AppColors.surfaceVariant(
+                                                context),
+                                          ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
                           child: Material(
                             type: MaterialType.transparency,
                             child: recipe.imageUrl != null
@@ -164,6 +241,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     imageUrl: recipe.imageUrl!,
                                     fit: BoxFit.cover,
                                     width: double.infinity,
+                                    fadeInDuration: Duration.zero,
+                                    fadeOutDuration: Duration.zero,
                                   )
                                 : Container(
                                     color: AppColors.surfaceVariant(context),
@@ -281,50 +360,55 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           // ── Ingredients section ──
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
                   Text(
-                    S.ingredients,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${recipe.ingredients.length}',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () => _addAllToCart(recipe),
-                    icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
-                    label: const Text('Сагсанд нэмэх'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    'Ingredients',
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.remove_circle_outline_rounded,
+                    color: AppColors.textSecondary(context),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Serves ${recipe.servings}',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: AppColors.textSecondary(context),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'US / METRIC',
+                    style: textTheme.labelMedium?.copyWith(
+                      color: AppColors.textSecondary(context),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
           // ── Ingredient list ──
           if (recipe.ingredients.isEmpty)
@@ -338,83 +422,179 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             SliverList(
               delegate: SliverChildBuilderDelegate((_, i) {
                 final ing = recipe.ingredients[i];
-                final checked = _checkedIngredients.contains(i);
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      if (checked) {
-                        _checkedIngredients.remove(i);
-                      } else {
-                        _checkedIngredients.add(i);
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 22,
-                          height: 22,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: checked
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            border: Border.all(
-                              color: checked
-                                  ? AppColors.primary
-                                  : AppColors.border(context),
-                              width: 2,
-                            ),
-                          ),
-                          child: checked
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 14,
-                                  color: Colors.white,
-                                )
-                              : null,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.primaries[i % Colors.primaries.length]
+                              .withValues(alpha: 0.2), // Light background color for ingredient
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text(
-                            ing.name,
-                            style: textTheme.bodyLarge?.copyWith(
-                              decoration: checked
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: checked
-                                  ? AppColors.textTertiary(context)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '${ing.amount}${ing.unit != null ? ' ${ing.unit}' : ''}',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary(context),
+                        // Replace with an actua CachedNetworkImage if you have ingredient images
+                      ),
+                      const SizedBox(width: 16),
+                      // Amount
+                      SizedBox(
+                        width: 48,
+                        child: Text(
+                          ing.amount,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontStyle: FontStyle.italic,
                             fontWeight: FontWeight.w500,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ing.name,
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.textPrimary(context).withValues(alpha: 0.5),
+                              ),
+                            ),
+                            if (ing.unit != null && ing.unit!.isNotEmpty)
+                              Text(
+                                ing.unit!,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary(context),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textSecondary(context),
+                        size: 20,
+                      ),
+                    ],
                   ),
                 );
               }, childCount: recipe.ingredients.length),
             ),
 
-          // ── Steps section ──
+          // ── Nutrition section ──
+          if (recipe.nutrition != null) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Nutrition Per Serving',
+                      style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      'VIEW ALL',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: AppColors.textPrimary(context),
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _nutritionItem(
+                      '${recipe.nutrition!.calories}',
+                      'CALORIES',
+                      context,
+                    ),
+                    _verticalDivider(context),
+                    _nutritionItem(
+                      '${recipe.nutrition!.fat.toStringAsFixed(1)} g',
+                      'FAT',
+                      context,
+                    ),
+                    _verticalDivider(context),
+                    _nutritionItem(
+                      '${recipe.nutrition!.protein.toStringAsFixed(1)} g',
+                      'PROTEIN',
+                      context,
+                    ),
+                    _verticalDivider(context),
+                    _nutritionItem(
+                      '${recipe.nutrition!.carbs.toStringAsFixed(1)} g',
+                      'CARBS',
+                      context,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            SliverToBoxAdapter(
+              child: Divider(
+                color: AppColors.surfaceVariant(context),
+                height: 1,
+                thickness: 8,
+              ),
+            ),
+          ],
+
+          // ── Directions section ──
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-              child: Text(
-                S.steps,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Directions',
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'HIDE IMAGES',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: AppColors.textSecondary(context),
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  context.push('/recipe/${recipe.id}/steps', extra: recipe);
+                },
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: const Text('STEP BY STEP MODE'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  side: BorderSide(color: AppColors.textPrimary(context).withValues(alpha: 0.2)),
+                  foregroundColor: AppColors.textPrimary(context),
                 ),
               ),
             ),
@@ -434,149 +614,97 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
-                    vertical: 8,
+                    vertical: 16,
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+                      Text(
+                        'Step ${step.order}',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.textSecondary(context),
                         ),
-                        child: Center(
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        step.description,
+                        style: textTheme.bodyLarge?.copyWith(
+                          height: 1.6,
+                        ),
+                      ),
+                      if ((step.timerSeconds ?? 0) > 0) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceVariant(context),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: Text(
-                            '${step.order}',
-                            style: textTheme.labelLarge?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
+                            'Таймер: ${step.timerSeconds} сек',
+                            style: textTheme.labelMedium?.copyWith(
+                              color: AppColors.textSecondary(context),
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                step.description,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  height: 1.5,
-                                ),
-                              ),
-                              if ((step.timerSeconds ?? 0) > 0) ...[
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surfaceVariant(context),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    'Таймер: ${step.timerSeconds} сек',
-                                    style: textTheme.labelMedium?.copyWith(
-                                      color: AppColors.textSecondary(context),
-                                      fontWeight: FontWeight.w600,
+                      ],
+                      if ((step.imageUrl ?? '').trim().isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CachedNetworkImage(
+                                  imageUrl: step.imageUrl!.trim(),
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) =>
+                                      ShimmerLoader.card(height: 160),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: AppColors.surfaceVariant(
+                                      context,
                                     ),
-                                  ),
-                                ),
-                              ],
-                              if ((step.imageUrl ?? '').trim().isNotEmpty) ...[
-                                const SizedBox(height: 10),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: AspectRatio(
-                                    aspectRatio: 16 / 9,
-                                    child: CachedNetworkImage(
-                                      imageUrl: step.imageUrl!.trim(),
-                                      fit: BoxFit.cover,
-                                      placeholder: (_, __) =>
-                                          ShimmerLoader.card(height: 160),
-                                      errorWidget: (_, __, ___) => Container(
-                                        color: AppColors.surfaceVariant(
-                                          context,
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.broken_image_outlined,
-                                          color: AppColors.textSecondary(
-                                            context,
-                                          ),
-                                        ),
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      Icons.broken_image_outlined,
+                                      color: AppColors.textSecondary(
+                                        context,
                                       ),
                                     ),
                                   ),
                                 ),
+                                Center(
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.background(context).withValues(alpha: 0.8),
+                                    ),
+                                    child: Icon(
+                                      Icons.play_arrow_rounded,
+                                      color: AppColors.primary,
+                                      size: 32,
+                                    ),
+                                  ),
+                                ),
                               ],
-                            ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 );
               }, childCount: recipe.steps.length),
             ),
-
-          // ── Nutrition section ──
-          if (recipe.nutrition != null) ...[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-                child: Text(
-                  S.nutrition,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant(context),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _nutritionItem(
-                        '${recipe.nutrition!.calories}',
-                        'ккал',
-                        context,
-                      ),
-                      _nutritionItem(
-                        '${recipe.nutrition!.protein.toStringAsFixed(1)}г',
-                        'Уураг',
-                        context,
-                      ),
-                      _nutritionItem(
-                        '${recipe.nutrition!.carbs.toStringAsFixed(1)}г',
-                        'Нүүрс ус',
-                        context,
-                      ),
-                      _nutritionItem(
-                        '${recipe.nutrition!.fat.toStringAsFixed(1)}г',
-                        'Өөх тос',
-                        context,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
 
           // Bottom spacing
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -736,41 +864,25 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       Text(
         value,
         style: Theme.of(ctx).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          fontWeight: FontWeight.w800,
         ),
       ),
-      const SizedBox(height: 2),
+      const SizedBox(height: 4),
       Text(
         label,
         style: Theme.of(
           ctx,
-        ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary(ctx)),
+        ).textTheme.labelSmall?.copyWith(
+          color: AppColors.textSecondary(ctx),
+          fontWeight: FontWeight.w700,
+        ),
       ),
     ],
   );
 
-  void _addAllToCart(Recipe recipe) {
-    final cart = context.read<CartProvider>();
-    cart.addItems(
-      recipe.ingredients
-          .map(
-            (ing) => CartItem(
-              name: ing.name,
-              amount: ing.amount,
-              unit: ing.unit,
-              recipeName: recipe.title,
-            ),
-          )
-          .toList(),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${recipe.ingredients.length} орц сагсанд нэмэгдлээ'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  Widget _verticalDivider(BuildContext ctx) => Container(
+    width: 1,
+    height: 32,
+    color: AppColors.textSecondary(ctx).withValues(alpha: 0.3),
+  );
 }

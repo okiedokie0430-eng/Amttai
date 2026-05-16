@@ -1,27 +1,1014 @@
 {
     "projectId": "amttai",
+    "projectName": "amttai",
+    "endpoint": "https://fra.cloud.appwrite.io/v1",
+    "settings": {
+        "services": {
+            "account": true,
+            "avatars": true,
+            "databases": true,
+            "locale": true,
+            "health": true,
+            "storage": true,
+            "teams": true,
+            "users": true,
+            "sites": true,
+            "functions": true,
+            "graphql": true,
+            "messaging": true
+        },
+        "auth": {
+            "methods": {
+                "jwt": true,
+                "phone": true,
+                "invites": true,
+                "anonymous": true,
+                "email-otp": true,
+                "magic-url": true,
+                "email-password": true
+            },
+            "security": {
+                "duration": 31536000,
+                "limit": 0,
+                "sessionsLimit": 10,
+                "passwordHistory": 0,
+                "passwordDictionary": false,
+                "personalDataCheck": false,
+                "sessionAlerts": false,
+                "mockNumbers": []
+            }
+        }
+    },
     "functions": [
         {
             "$id": "delete-account",
             "name": "delete-account",
             "runtime": "node-18.0",
+            "path": "functions/delete-account",
+            "entrypoint": "src/main.js",
             "execute": [
                 "users"
             ],
-            "entrypoint": "src/main.js",
-            "path": "appwrite-functions/delete-account",
-            "commands": "npm install"
+            "enabled": true,
+            "logging": true,
+            "events": [],
+            "schedule": "",
+            "timeout": 15,
+            "commands": "npm install",
+            "scopes": []
         },
         {
             "$id": "broadcast-push",
             "name": "broadcast-push",
             "runtime": "node-18.0",
+            "path": "functions/broadcast-push",
+            "entrypoint": "src/main.js",
             "execute": [
                 "users"
             ],
+            "enabled": true,
+            "logging": true,
+            "events": [],
+            "schedule": "",
+            "timeout": 15,
+            "commands": "npm install",
+            "scopes": []
+        },
+        {
+            "$id": "process-sms-payment",
+            "name": "Process SMS Payment",
+            "runtime": "node-18.0",
+            "specification": "s-4vcpu-4gb",
+            "execute": [
+                "any"
+            ],
+            "events": [],
+            "scopes": [
+                "users.read"
+            ],
+            "schedule": "",
+            "timeout": 15,
+            "enabled": true,
+            "logging": true,
             "entrypoint": "src/main.js",
-            "path": "appwrite-functions/broadcast-push",
-            "commands": "npm install"
+            "commands": "npm install",
+            "ignore": [
+                "node_modules",
+                ".npm"
+            ],
+            "path": "functions/Process SMS Payment"
         }
-    ]
+    ],
+    "tablesDB": [
+        {
+            "$id": "amttai_db",
+            "name": "1st Database",
+            "enabled": true
+        }
+    ],
+    "tables": [
+        {
+            "$id": "recipes",
+            "$permissions": [
+                "read(\"any\")",
+                "create(\"users\")",
+                "read(\"users\")",
+                "update(\"users\")",
+                "delete(\"users\")"
+            ],
+            "databaseId": "amttai_db",
+            "name": "Recipes",
+            "enabled": true,
+            "rowSecurity": false,
+            "columns": [
+                {
+                    "key": "title",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 256,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "description",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 5000,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "category",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "image_url",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "default": null,
+                    "format": "url"
+                },
+                {
+                    "key": "video_url",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "default": null,
+                    "format": "url"
+                },
+                {
+                    "key": "prep_time_minutes",
+                    "type": "integer",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": -9223372036854775808,
+                    "max": 9223372036854775807
+                },
+                {
+                    "key": "cook_time_minutes",
+                    "type": "integer",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": -9223372036854775808,
+                    "max": 9223372036854775807
+                },
+                {
+                    "key": "servings",
+                    "type": "integer",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": -9223372036854775808,
+                    "max": 9223372036854775807
+                },
+                {
+                    "key": "difficulty",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 16,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "is_premium",
+                    "type": "boolean",
+                    "required": false,
+                    "array": false,
+                    "default": false
+                },
+                {
+                    "key": "ingredients",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 2000,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "steps",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 4000,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "nutrition",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 500,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "average_rating",
+                    "type": "double",
+                    "required": false,
+                    "array": false,
+                    "default": 0,
+                    "min": -179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+                    "max": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+                },
+                {
+                    "key": "total_ratings",
+                    "type": "integer",
+                    "required": false,
+                    "array": false,
+                    "default": 0,
+                    "min": -9223372036854775808,
+                    "max": 9223372036854775807
+                },
+                {
+                    "key": "created_at",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "ingredients_json",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 65535,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "steps_json",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 65535,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "nutrition_json",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 65535,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "english_keywords",
+                    "type": "string",
+                    "required": false,
+                    "array": true,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "category",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "category"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "is_premium",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "is_premium"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "average_rating",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "average_rating"
+                    ],
+                    "orders": [
+                        "DESC"
+                    ]
+                },
+                {
+                    "key": "created_at",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "created_at"
+                    ],
+                    "orders": [
+                        "DESC"
+                    ]
+                },
+                {
+                    "key": "title",
+                    "type": "fulltext",
+                    "status": "available",
+                    "columns": [
+                        "title"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_recipes_created_at",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "created_at"
+                    ],
+                    "orders": [
+                        "DESC"
+                    ]
+                },
+                {
+                    "key": "idx_recipes_category",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "category"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_recipes_is_premium",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "is_premium"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_recipes_avg_rating",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "average_rating"
+                    ],
+                    "orders": [
+                        "DESC"
+                    ]
+                },
+                {
+                    "key": "idx_recipes_title_fulltext",
+                    "type": "fulltext",
+                    "status": "available",
+                    "columns": [
+                        "title"
+                    ],
+                    "orders": []
+                },
+                {
+                    "key": "idx_recipes_cat_premium_created",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "category",
+                        "is_premium",
+                        "created_at"
+                    ],
+                    "orders": [
+                        "ASC",
+                        "ASC",
+                        "DESC"
+                    ]
+                }
+            ]
+        },
+        {
+            "$id": "users",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")"
+            ],
+            "databaseId": "amttai_db",
+            "name": "Users",
+            "enabled": true,
+            "rowSecurity": false,
+            "columns": [
+                {
+                    "key": "name",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 128,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "email",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 320,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "phone",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 32,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "photo_url",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "default": null,
+                    "format": "url"
+                },
+                {
+                    "key": "is_premium",
+                    "type": "boolean",
+                    "required": false,
+                    "array": false,
+                    "default": false
+                },
+                {
+                    "key": "premium_expires_at",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "favorite_recipe_ids",
+                    "type": "string",
+                    "required": false,
+                    "array": true,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "created_at",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "user_code",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 12,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "push_tokens",
+                    "type": "string",
+                    "required": false,
+                    "array": true,
+                    "size": 512,
+                    "default": null,
+                    "encrypt": false
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "idx_users_email_unique",
+                    "type": "unique",
+                    "status": "available",
+                    "columns": [
+                        "email"
+                    ],
+                    "orders": []
+                },
+                {
+                    "key": "idx_users_is_premium",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "is_premium"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_users_user_code_unique",
+                    "type": "unique",
+                    "status": "available",
+                    "columns": [
+                        "user_code"
+                    ],
+                    "orders": []
+                }
+            ]
+        },
+        {
+            "$id": "ratings",
+            "$permissions": [
+                "read(\"any\")",
+                "create(\"users\")",
+                "read(\"users\")"
+            ],
+            "databaseId": "amttai_db",
+            "name": "Ratings",
+            "enabled": true,
+            "rowSecurity": false,
+            "columns": [
+                {
+                    "key": "recipe_id",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "user_id",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "user_name",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 128,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "score",
+                    "type": "double",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": 0,
+                    "max": 5
+                },
+                {
+                    "key": "comment",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 2000,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "created_at",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "rating",
+                    "type": "integer",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "key": "updated_at",
+                    "type": "datetime",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "format": ""
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "recipe_id",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "recipe_id"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_ratings_user_recipe_unique",
+                    "type": "unique",
+                    "status": "available",
+                    "columns": [
+                        "user_id",
+                        "recipe_id"
+                    ],
+                    "orders": []
+                },
+                {
+                    "key": "idx_ratings_recipe",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "recipe_id"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_ratings_user",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "user_id"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                }
+            ]
+        },
+        {
+            "$id": "payments",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")"
+            ],
+            "databaseId": "amttai_db",
+            "name": "Payments",
+            "enabled": true,
+            "rowSecurity": false,
+            "columns": [
+                {
+                    "key": "user_id",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "plan",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 32,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "amount",
+                    "type": "integer",
+                    "required": true,
+                    "array": false,
+                    "default": null,
+                    "min": -9223372036854775808,
+                    "max": 9223372036854775807
+                },
+                {
+                    "key": "transaction_code",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 128,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "transaction_id",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 128,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 16,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "created_at",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "verified_at",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "user_id",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "user_id"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "created_at",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "created_at"
+                    ],
+                    "orders": [
+                        "DESC"
+                    ]
+                },
+                {
+                    "key": "idx_payments_user_created",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "user_id",
+                        "created_at"
+                    ],
+                    "orders": [
+                        "ASC",
+                        "DESC"
+                    ]
+                },
+                {
+                    "key": "idx_payments_tx_code",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "transaction_code"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_payments_user_tx_created",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "user_id",
+                        "transaction_code",
+                        "created_at"
+                    ],
+                    "orders": [
+                        "ASC",
+                        "ASC",
+                        "DESC"
+                    ]
+                }
+            ]
+        },
+        {
+            "$id": "support_messages",
+            "$permissions": [],
+            "databaseId": "amttai_db",
+            "name": "Customer Support Service",
+            "enabled": true,
+            "rowSecurity": false,
+            "columns": [
+                {
+                    "key": "user_id",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "message",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 5000,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "is_from_admin",
+                    "type": "boolean",
+                    "required": false,
+                    "array": false,
+                    "default": false
+                },
+                {
+                    "key": "created_at",
+                    "type": "string",
+                    "required": true,
+                    "array": false,
+                    "size": 64,
+                    "default": null,
+                    "encrypt": false
+                }
+            ],
+            "indexes": [
+                {
+                    "key": "user_id",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "user_id"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "created_at",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "created_at"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_support_user_created",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "user_id",
+                        "created_at"
+                    ],
+                    "orders": [
+                        "ASC",
+                        "ASC"
+                    ]
+                },
+                {
+                    "key": "idx_support_created",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "created_at"
+                    ],
+                    "orders": [
+                        "ASC"
+                    ]
+                }
+            ]
+        }
+    ],
+    "buckets": [
+        {
+            "$id": "recipe_images",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")"
+            ],
+            "fileSecurity": false,
+            "name": "Recipe Images",
+            "enabled": true,
+            "maximumFileSize": 5000000000,
+            "allowedFileExtensions": [
+                "jpg",
+                "png",
+                "webp",
+                "gif"
+            ],
+            "compression": "none",
+            "encryption": true,
+            "antivirus": true
+        },
+        {
+            "$id": "recipe_videos",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")"
+            ],
+            "fileSecurity": false,
+            "name": "Instruction Videos",
+            "enabled": true,
+            "maximumFileSize": 5000000000,
+            "allowedFileExtensions": [
+                "mp4",
+                "mov",
+                "webm"
+            ],
+            "compression": "none",
+            "encryption": true,
+            "antivirus": true
+        },
+        {
+            "$id": "profile_photos",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")",
+                "update(\"users\")"
+            ],
+            "fileSecurity": false,
+            "name": "Profile Pictures",
+            "enabled": true,
+            "maximumFileSize": 5000000000,
+            "allowedFileExtensions": [
+                "jpg",
+                "png",
+                "jfif",
+                "gif",
+                "webp"
+            ],
+            "compression": "none",
+            "encryption": true,
+            "antivirus": true
+        },
+        {
+            "$id": "payment_screenshots",
+            "$permissions": [
+                "create(\"users\")",
+                "read(\"users\")"
+            ],
+            "fileSecurity": false,
+            "name": "Payment Screenshots",
+            "enabled": true,
+            "maximumFileSize": 5000000000,
+            "allowedFileExtensions": [
+                "jpg",
+                "png",
+                "webp",
+                "jfif"
+            ],
+            "compression": "none",
+            "encryption": true,
+            "antivirus": true
+        }
+    ],
+    "teams": [],
+    "topics": []
 }

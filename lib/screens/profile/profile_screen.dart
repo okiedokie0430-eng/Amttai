@@ -272,6 +272,8 @@ class _RecipeList extends StatelessWidget {
                   children: [
                     Hero(
                       tag: '${heroPrefix}recipe_image_${recipe.id}',
+                      createRectTween: (begin, end) =>
+                          RectTween(begin: begin, end: end),
                       child: SizedBox(
                         width: 140,
                         height: double.infinity,
@@ -279,6 +281,8 @@ class _RecipeList extends StatelessWidget {
                             ? CachedNetworkImage(
                                 imageUrl: recipe.imageUrl!,
                                 fit: BoxFit.cover,
+                                fadeInDuration: Duration.zero,
+                                fadeOutDuration: Duration.zero,
                               )
                             : Container(
                                 color: Colors.grey.withValues(alpha: 0.2),

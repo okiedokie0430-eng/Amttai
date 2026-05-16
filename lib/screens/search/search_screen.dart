@@ -404,6 +404,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: [
                   Hero(
                     tag: 'search_recipe_image_${recipe.id}',
+                    createRectTween: (begin, end) =>
+                        RectTween(begin: begin, end: end),
                     child: SizedBox(
                       width: 140,
                       height: double.infinity,
@@ -411,6 +413,8 @@ class _SearchScreenState extends State<SearchScreen> {
                           ? CachedNetworkImage(
                               imageUrl: recipe.imageUrl!,
                               fit: BoxFit.cover,
+                              fadeInDuration: Duration.zero,
+                              fadeOutDuration: Duration.zero,
                             )
                           : Container(
                               color: Colors.grey.withValues(alpha: 0.2),

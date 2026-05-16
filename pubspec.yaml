@@ -57,6 +57,7 @@ dependencies:
   flutter_svg: ^2.2.0
   in_app_purchase: ^3.2.3
   custom_refresh_indicator: ^4.0.1
+  flutter_tts: ^4.2.5
 
 dependency_overrides:
   flutter_web_auth_2: ^4.0.0

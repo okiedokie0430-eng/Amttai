@@ -53,6 +53,7 @@ class MainShell extends StatelessWidget {
     );
 
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: navigationShell.currentIndex,

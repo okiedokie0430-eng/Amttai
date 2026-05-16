@@ -1,0 +1,10 @@
+{
+  "name": "broadcast-push",
+  "version": "1.0.0",
+  "description": "Broadcast push notifications to Appwrite Messaging push targets",
+  "type": "module",
+  "main": "src/main.js",
+  "dependencies": {
+    "node-appwrite": "^13.0.0"
+  }
+}
