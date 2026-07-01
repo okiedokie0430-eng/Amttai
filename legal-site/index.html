@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amttai | Legal Center & Data Privacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        matte: {
+                            950: '#050508',
+                            900: '#0B0B0F',
+                            800: '#121217',
+                            700: '#1A1A20',
+                            600: '#25252C',
+                            500: '#33333D',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar for Webkit */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0B0B0F; }
+        ::-webkit-scrollbar-thumb { background: #33333D; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #44444D; }
+
+        .glass-border {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .glass-surface {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-matte-900 text-gray-300 font-sans antialiased selection:bg-white/10 selection:text-white">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-matte-800 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <span class="font-semibold text-white tracking-wide">Amttai</span>
+        </div>
+        <button id="mobile-menu-btn" class="text-gray-400 hover:text-white focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-matte-800 border-r border-white/5 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-screen">
+            <div class="p-6 border-b border-white/5">
+                <a href="/" onclick="event.preventDefault(); switchTab('privacy');" class="flex items-center gap-3 mb-1 cursor-pointer">
+                    <span class="font-bold text-white text-xl tracking-tight">Amttai</span>
+                </a>
+                <p class="text-xs text-gray-500 mt-1 pl-11">&nbsp;</p>
+            </div>
+
+            <!-- Document Tabs -->
+            <nav class="p-4 space-y-1 flex-shrink-0">
+                <button onclick="switchTab('privacy')" id="tab-btn-privacy" class="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-3 text-white bg-white/5 border border-white/5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Privacy Policy
+                </button>
+                <button onclick="switchTab('terms')" id="tab-btn-terms" class="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Terms of Service
+                </button>
+                <button onclick="switchTab('erasure')" id="tab-btn-erasure" class="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Data Erasure
+                </button>
+            </nav>
+
+            <!-- Table of Contents -->
+            <div class="flex-1 overflow-y-auto px-4 pb-6 border-t border-white/5 pt-4">
+                <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">On this page</h3>
+                <div id="toc-container" class="space-y-1">
+                    <!-- TOC items injected via JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 md:ml-72 h-screen overflow-y-auto relative scroll-smooth" id="main-scroll">
+            <div class="max-w-4xl mx-auto px-6 py-12 md:px-12 md:py-16">
+
+                <!-- Privacy Policy Content -->
+                <div id="content-privacy" class="tab-content space-y-12">
+                    <header class="mb-10 border-b border-white/5 pb-8">
+                        <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">Privacy Notice</h1>
+                        <p class="text-gray-400 text-sm">Last updated: <span class="text-gray-300">June 2, 2026</span></p>
+                    </header>
+
+                    <div class="max-w-none">
+                        <p class="text-gray-400 leading-relaxed mb-6">This privacy notice for Amttai ("<strong class="text-gray-200">we</strong>," "<strong class="text-gray-200">our</strong>," or "<strong class="text-gray-200">us</strong>"), describes how and why we might collect, store, use, and/or share ("<strong class="text-gray-200">process</strong>") your information when you use our services ("<strong class="text-gray-200">Services</strong>"), such as when you download and use our mobile application (Amttai), a Private Digital Cookbook & Family Collaboration Utility, or any other application of ours that links to this privacy notice.</p>
+                        <p class="text-gray-400 leading-relaxed mb-12">Reading this privacy notice will help you understand your privacy rights and choices. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us through your registered developer support channel.</p>
+
+                        <section id="pp-summary" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">Summary of Key Points</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">This summary provides key points from our privacy notice.</p>
+                            <ul class="list-disc pl-5 space-y-3 text-gray-400">
+                                <li><strong class="text-gray-200">What personal information do we process?</strong> We may process basic account details provided by you or through Google Sign-In, necessary for authentication and personalizing your private cookbook sandbox.</li>
+                                <li><strong class="text-gray-200">How is your data secured?</strong> User-generated custom recipes and interactive shopping lists are secured via individual or team-level permissions. Data is only accessible to the account owner and explicitly invited team members.</li>
+                                <li><strong class="text-gray-200">Who processes your data?</strong> Appwrite acts as our primary cloud database, authentication, and hosting processor, ensuring strict compliance with standard data protection rules (GDPR/CCPA frameworks) regarding data deletion and user control.</li>
+                            </ul>
+                        </section>
+
+                        <section id="pp-1" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">1. WHAT INFORMATION DO WE COLLECT?</h2>
+
+                            <h3 class="text-lg font-semibold text-white mb-2 mt-6">Personal information you disclose to us</h3>
+                            <p class="text-gray-400 leading-relaxed mb-4">We collect personal information that you voluntarily provide to us when you register on the Services or create content within your private sandbox.</p>
+                            <ul class="list-disc pl-5 space-y-3 text-gray-400 mb-6">
+                                <li><strong class="text-gray-200">Authentication Data:</strong> Profile details returned by Google APIs or direct email registration, including your name, email address, and profile picture URL.</li>
+                                <li><strong class="text-gray-200">Private Sandbox Content:</strong> User-generated recipes, images, and interactive shopping lists that you create. These custom recipes are completely private to your individual user account by default.</li>
+                            </ul>
+
+                            <h3 class="text-lg font-semibold text-white mb-2 mt-6">Application Data Automatically Collected</h3>
+                            <p class="text-gray-400 leading-relaxed mb-4">We automatically collect specific diagnostic and performance telemetry data (Mobile Device Model, OS version, IP address, secure system tokens) technically required to maintain secure server connections and log system bugs.</p>
+                        </section>
+
+                        <section id="pp-2" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">2. DATA VISIBILITY AND "SHARED KITCHENS"</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">Amttai operates as a private utility rather than a public social network. Therefore, there are no public broadcasting features, global user profiles, or public feeds.</p>
+                            <ul class="list-disc pl-5 space-y-3 text-gray-400 mb-6">
+                                <li><strong class="text-gray-200">Private by Default:</strong> All custom recipes you write, store, and edit are encrypted and completely private to your individual user account.</li>
+                                <li><strong class="text-gray-200">Shared Kitchens (Micro-Communities):</strong> You may explicitly invite family members, partners, or roommates to a private "Shared Kitchen" team via Appwrite.</li>
+                                <li><strong class="text-gray-200">Real-Time Syncing:</strong> Within a Shared Kitchen, data (custom recipes, modifications, and interactive shopping lists) syncs in real-time between authorized team members via secure WebSockets. This data remains strictly confined to the explicitly invited team members.</li>
+                            </ul>
+                        </section>
+
+                        <section id="pp-3" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">3. HOW DO WE PROCESS YOUR INFORMATION?</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">We process the personal data collected through our Appwrite backend for operational reasons, including:</p>
+                            <ul class="list-disc pl-5 space-y-3 text-gray-400 mb-6">
+                                <li><strong class="text-gray-200">To facilitate delivery of services:</strong> To verify identity, manage your private cookbook sandbox, and facilitate secure real-time WebSocket syncing for Shared Kitchen teams.</li>
+                                <li><strong class="text-gray-200">To protect our Services:</strong> To monitor infrastructure security, trace server error logs, and counter unauthorized access.</li>
+                            </ul>
+                        </section>
+
+                        <section id="pp-4" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">We do not sell, rent, or trade your personal data. We disclose your information exclusively to verified third-party service providers who operate as specialized data processors:</p>
+                            <ul class="list-disc pl-5 space-y-3 text-gray-400 mb-6">
+                                <li><strong class="text-gray-200">Appwrite Cloud:</strong> Our primary cloud database, authentication, and hosting processor. Appwrite handles backend operations, ensuring compliance with standard data protection rules (GDPR/CCPA frameworks) regarding data deletion and user control.</li>
+                                <li><strong class="text-gray-200">Google OAuth Services:</strong> Identity validation gateways verifying your credentials during account registration.</li>
+                            </ul>
+                        </section>
+
+                        <section id="pp-5" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">5. HOW LONG DO WE KEEP YOUR INFORMATION?</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">We preserve your personal records and private sandbox content only for the duration that your user account remains active inside our platform. If you decide to execute an account deletion request, all personal profile elements and custom uploaded data are completely, immediately, and permanently purged from our Appwrite backend servers.</p>
+                        </section>
+
+                        <section id="pp-6" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">6. HOW DO WE KEEP YOUR INFORMATION SAFE?</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">User-generated recipes and shopping lists are protected via individual or team-level permissions. Your account telemetry and sandbox data benefit from enterprise-grade transit security (HTTPS/TLS network packet encryption) and automated encryption at rest inside cloud server frames via Appwrite.</p>
+                        </section>
+
+                        <section id="pp-7" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="bg-matte-700/40 border border-blue-500/20 rounded-xl p-6 md:p-8 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-transparent opacity-50"></div>
+                                <div class="flex items-start gap-4">
+                                    <div class="mt-1 p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
+                                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-xl font-semibold text-white mb-3">7. WHAT ARE YOUR PRIVACY RIGHTS?</h2>
+                                        <p class="text-gray-300 leading-relaxed mb-4">Regardless of your geographic location, we grant all users an absolute capability to review, download, or fully clear their collected database listings. You can execute a data deletion mandate at any time within the mobile application settings, or by visiting our <button onclick="switchTab('erasure')" class="text-blue-400 hover:text-blue-300 underline cursor-pointer">Secure Data Erasure Portal</button>.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section id="pp-8" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <h2 class="text-xl font-semibold text-white mb-4">8. HOW CAN YOU CONTACT US?</h2>
+                            <p class="text-gray-400 leading-relaxed mb-4">If you have questions or data removal requests regarding this Privacy Notice, you can reach out via your registered developer support channel or visit our infrastructure landing domain at <a href="https://amttai.appwrite.network" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">https://amttai.appwrite.network</a>.</p>
+                        </section>
+                    </div>
+                </div>
+
+<!-- Terms of Service Content -->
+                <div id="content-terms" class="tab-content hidden space-y-12">
+                    <header class="mb-10 border-b border-white/5 pb-8">
+                        <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">Terms of Service</h1>
+                        <p class="text-gray-400 text-sm">Last updated: <span class="text-gray-300">June 2, 2026</span></p>
+                    </header>
+
+                    <div class="max-w-none">
+                        <div class="mb-10 space-y-6">
+                            <h2 class="text-xl font-semibold text-white mb-4">AGREEMENT TO OUR LEGAL TERMS</h2>
+                            <p class="text-gray-400">We are Amttai ("<strong class="text-gray-200">Company</strong>," "<strong class="text-gray-200">we</strong>," "<strong class="text-gray-200">us</strong>," "<strong class="text-gray-200">our</strong>"), a company registered in Mongolia.</p>
+                            <p class="text-gray-400">We operate the mobile and web application Amttai (the "<strong class="text-gray-200">App</strong>"), a Private, Anti-Bloat Digital Cookbook & Family Collaboration Utility, as well as any other related products and services that refer or link to these legal terms.</p>
+                            <p class="text-gray-400">These Legal Terms constitute a legally binding agreement made between you and Amttai, concerning your access to and use of the Services. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.</p>
+                        </div>
+                        
+                        <section id="tos-1" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">1. OUR SERVICES</h2>
+                                <p class="text-gray-400">The Services provide a read-only base library of public recipes and a private "Create Your Own" sandbox for families to collaborate on custom recipes and interactive shopping lists.</p>
+                            </div>
+                        </section>
+
+                        <section id="tos-2" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">2. DATA ATTRIBUTION & LICENSING (OPEN SOURCE COMPLIANCE)</h2>
+                                <p class="text-gray-400"><strong class="text-gray-200">Public Base Library:</strong> The app provides a read-only base library of recipes sourced from the Wikibooks Cookbook project. These core recipe texts operate under the Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) license. The underlying Wikibooks recipe data layer remains subject to its original open terms.</p>
+                                <p class="text-gray-400"><strong class="text-gray-200">Visual Assets:</strong> Accompanying visuals within the base library are pulled from public/commercial-friendly providers (such as Wikimedia Commons, Unsplash, Pixabay) and remain subject to their respective licenses.</p>
+                                <p class="text-gray-400"><strong class="text-gray-200">Proprietary Software:</strong> While the core Wikibooks dataset is open-source under CC BY-SA 4.0, the application code, Svelte 5 user interface (UI), Appwrite integration logic, and proprietary features developed by Amttai remain strictly proprietary and are protected by copyright laws. You are granted a limited license to use the application, but you may not decompile or reproduce the proprietary code.</p>
+                            </div>
+                        </section>
+
+                        <section id="tos-3" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">3. PRIVATE SANDBOX & COLLABORATION RULES</h2>
+                                <h3 class="text-lg font-semibold text-white mb-3 mt-6">Private "Create Your Own" Sandbox</h3>
+                                <p class="text-gray-400">Users can write, store, and edit their own custom family recipes from scratch. These custom recipes are completely private to the individual user account by default. You retain full ownership over the content you create within your private sandbox.</p>
+                                <h3 class="text-lg font-semibold text-white mb-3 mt-6">"Shared Kitchens" (Micro-Communities)</h3>
+                                <p class="text-gray-400">Users can explicitly invite family members, partners, or roommates to a private "Shared Kitchen" team via Appwrite. By inviting a member to a Shared Kitchen, you acknowledge that the invited member will have equal data privileges (Read/Write/Delete) over that shared kitchen's custom recipes and interactive shopping lists.</p>
+                                <h3 class="text-lg font-semibold text-white mb-3 mt-6">Data Boundaries & Disputes</h3>
+                                <p class="text-gray-400">You are solely responsible for the content you type into your private or shared sandbox. Amttai acts only as a secure hosting and collaboration utility. The app is not responsible for resolving any disputes, accidental data deletions, or modifications that occur within your private family teams or Shared Kitchens.</p>
+                            </div>
+                        </section>
+
+                        <section id="tos-4" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">4. PROHIBITED ACTIVITIES</h2>
+                                <p class="text-gray-400">As a productivity utility, we strictly prohibit actions that undermine the security and intended use of the platform. You agree not to:</p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-400 mt-4 mb-4">
+                                    <li>Systematically retrieve data or other content from the Services to compile a database without written permission.</li>
+                                    <li>Circumvent, disable, or otherwise interfere with security-related features of the Services.</li>
+                                    <li>Upload or transmit viruses, Trojan horses, or other harmful code.</li>
+                                    <li>Attempt to bypass any measures designed to restrict access to the Services or Shared Kitchens.</li>
+                                    <li>Decompile, disassemble, or reverse engineer the proprietary UI or application code.</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <section id="tos-5" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">5. THIRD-PARTY SERVICES & INFRASTRUCTURE</h2>
+                                <p class="text-gray-400">We utilize <strong class="text-gray-200">Appwrite</strong> as our primary cloud database, authentication provider, and hosting processor. By using Amttai, you acknowledge that your account credentials, private sandbox content, and Shared Kitchen syncing are processed and stored securely via Appwrite infrastructure. Appwrite processes this data in compliance with standard data protection rules (such as GDPR and CCPA frameworks) regarding data deletion and user control.</p>
+                            </div>
+                        </section>
+
+                        <section id="tos-6" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">6. STORE POLICY COMPLIANCE</h2>
+                                <p class="text-gray-400">Amttai operates in strict compliance with Google Play Store policies for productivity utilities. Our app is a functional tool for personal and family recipe management, lacking public social networking elements. Consequently, there are no public reporting pipelines, public broadcasting features, or public user profiles.</p>
+                            </div>
+                        </section>
+                        
+                        <section id="tos-7" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">7. DISCLAIMER</h2>
+                                <p class="text-gray-400 uppercase">THE SERVICES ARE PROVIDED ON AN AS-IS AND AS-AVAILABLE BASIS. YOU AGREE THAT YOUR USE OF THE SERVICES WILL BE AT YOUR SOLE RISK. AMTTAI IS A SOFTWARE UTILITY, NOT A MEDICAL PROFESSIONAL, NUTRITIONIST, OR CERTIFIED FOOD SAFETY EXPERT. WE STRICTLY DISCLAIM ANY LIABILITY FOR ADVERSE REACTIONS, FOODBORNE ILLNESSES, OR INJURIES RESULTING FROM THE PREPARATION OR CONSUMPTION OF THE RECIPES PROVIDED, WHETHER FROM THE PUBLIC BASE LIBRARY OR YOUR PRIVATE SANDBOX.</p>
+                            </div>
+                        </section>
+                        
+                        <section id="tos-8" class="scroll-mt-24 pt-8 border-t border-white/5">
+                            <div class="space-y-4">
+                                <h2 class="text-xl font-semibold text-white mb-4">8. CONTACT US</h2>
+                                <p class="text-gray-400">In order to resolve a complaint regarding the Services, please contact us at:</p>
+                                <p class="text-gray-400 mt-2"><strong class="text-gray-200">Amttai Support</strong><br><a class="text-blue-400 hover:text-blue-300 underline" href="mailto:treasurehappyboy@gmail.com">treasurehappyboy@gmail.com</a></p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+<!-- Secure Data Erasure Portal --><!-- Secure Data Erasure Portal -->
+                <div id="content-erasure" class="tab-content hidden">
+                    <header class="mb-10 border-b border-white/5 pb-8">
+                        <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">Secure Data Erasure</h1>
+                        <p class="text-gray-400 text-sm">Account Deletion Portal</p>
+                    </header>
+
+                    <div class="max-w-2xl">
+                        <div class="bg-matte-800 border border-white/5 rounded-xl p-6 md:p-8 mb-8">
+                            <h3 class="text-lg font-medium text-white mb-2 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                How your data is handled
+                            </h3>
+                            <ul class="space-y-3 text-sm text-gray-400 mt-4">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                    <span>Upon submission, your request is immediately encrypted and logged in our secure audit database.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                    <span>Our system initiates a purge of your personal data (profile, preferences, and activity logs) within <strong class="text-gray-200">30 days</strong>.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                    <span>Some anonymized analytical records may be retained for statistical purposes as permitted by law, but these cannot be used to identify you.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                    <span>You will receive a confirmation email once the erasure process is complete.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Notification Banners -->
+                        <div id="banner-success" class="hidden bg-white/5 border border-white/10 rounded-lg p-4 mb-6 flex items-start gap-3">
+                            <svg class="w-5 h-5 text-white mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <div>
+                                <h4 class="text-sm font-medium text-white">Request Submitted Successfully</h4>
+                                <p class="text-sm text-gray-400 mt-1">Your data erasure request has been securely received. We will process it within 30 days.</p>
+                            </div>
+                        </div>
+
+                        <div id="banner-error" class="hidden bg-white/5 border border-white/10 rounded-lg p-4 mb-6 flex items-start gap-3">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.054 0 1.641-.907 1.241-1.82C17.59 18.273 16.537 17 14.5 17h-5c-2.037 0-3.09 1.273-3.597 2.18-.4.913.187 1.82 1.241 1.82z"></path></svg>
+                            <div>
+                                <h4 class="text-sm font-medium text-white">Submission Failed</h4>
+                                <p class="text-sm text-gray-400 mt-1" id="error-message">An unexpected error occurred. Please try again later.</p>
+                            </div>
+                        </div>
+
+                        <!-- Form -->
+                        <form id="erasure-form" class="space-y-6">
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Registered Email Address</label>
+                                <input type="email" id="email" required class="w-full bg-matte-900 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" placeholder="user@example.com">
+                            </div>
+
+                            <div>
+                                <label for="full-name" class="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+                                <input type="text" id="full-name" required class="w-full bg-matte-900 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" placeholder="John Doe">
+                            </div>
+
+                            <div class="flex items-start gap-3 pt-2">
+                                <div class="flex items-center h-5">
+                                    <input id="confirm-checkbox" type="checkbox" required class="w-4 h-4 rounded border-white/10 bg-matte-900 text-white focus:ring-white/20 focus:ring-offset-matte-900">
+                                </div>
+                                <label for="confirm-checkbox" class="text-sm text-gray-400 leading-relaxed select-none">
+                                    I understand that this action is <span class="text-white font-medium">irreversible</span>. I confirm that I want to permanently delete my account and all associated personal data from Amttai's systems.
+                                </label>
+                            </div>
+
+                            <div class="pt-4">
+                                <button type="button" id="send-code-btn" class="w-full bg-white text-matte-900 font-semibold py-3.5 px-6 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                    <span>Send Verification Code</span>
+                                </button>
+                                <p class="text-xs text-gray-500 text-center pt-2">A 6-digit code will be emailed to the address above.</p>
+                            </div>
+
+                            <p class="text-xs text-gray-500 text-center pt-2">
+                                Secured by Appwrite. Email verification is required before submission.
+                            </p>
+                        </form>
+
+                        <!-- Full-Screen Verification Modal -->
+                        <div id="verify-modal" class="hidden fixed inset-0 z-50 bg-matte-950/95 backdrop-blur-md flex items-center justify-center p-6">
+                            <div class="w-full max-w-md bg-matte-800 border border-white/10 rounded-2xl p-8 md:p-10 shadow-2xl">
+                                <div class="text-center mb-8">
+                                    <div class="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">Check Your Email</h3>
+                                    <p class="text-sm text-gray-400">We've sent a 6-digit verification code to your email address.</p>
+                                </div>
+
+                                <div class="space-y-5">
+                                    <div>
+                                        <label for="otp-input" class="block text-sm font-medium text-gray-300 mb-2 text-center">Enter Verification Code</label>
+                                        <input type="text" id="otp-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" class="w-full bg-matte-900 border border-white/10 rounded-lg px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-center tracking-[0.75em] text-2xl font-mono" placeholder="000000">
+                                        <p id="modal-error" class="hidden text-sm text-gray-400 text-center mt-3"></p>
+                                    </div>
+
+                                    <button type="button" id="verify-submit-btn" class="w-full bg-white text-matte-900 font-semibold py-4 px-6 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                        <span>Verify & Submit Request</span>
+                                    </button>
+
+                                    <button type="button" id="resend-code-btn" class="w-full text-sm text-gray-500 hover:text-gray-300 transition-colors py-2">
+                                        Didn't receive it? Resend code
+                                    </button>
+
+                                    <button type="button" id="cancel-verify-btn" class="w-full text-sm text-gray-600 hover:text-gray-400 transition-colors py-2">
+                                        Cancel and go back
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="mt-24 pt-8 border-t border-white/5 text-center">
+                    <p class="text-sm text-gray-600">&copy; Amttai Inc. All rights reserved.</p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Appwrite Configuration ---
+        // IMPORTANT SECURITY NOTE:
+        // Set your Appwrite Collection permissions to "Role: All -> Create Only" (Write-Only)
+        // in your Appwrite Console to prevent unauthorized reads of deletion requests.
+        const client = new Appwrite.Client();
+        client
+            .setEndpoint('https://fra.cloud.appwrite.io/v1')
+            .setProject('amttai');
+
+        const databases = new Appwrite.Databases(client);
+        const account = new Appwrite.Account(client);
+        const DATABASE_ID = 'amttai_db';
+        const COLLECTION_ID = 'data_erasure_requests';
+        let verifiedUserId = null;
+
+        // --- UI Logic ---
+        const tabs = ['privacy', 'terms', 'erasure'];
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+
+        const pathMap = {
+            '/': 'privacy',
+            '/privacy-policy': 'privacy',
+            '/terms-of-service': 'terms',
+            '/data-deletion': 'erasure'
+        };
+        const tabPaths = {
+            privacy: '/privacy-policy',
+            terms: '/terms-of-service',
+            erasure: '/data-deletion'
+        };
+
+        function handleRoute() {
+            const path = window.location.pathname.replace(/\/$/, '') || '/';
+            if (path === '/') {
+                history.replaceState({ tab: 'privacy' }, '', '/privacy-policy');
+                switchTab('privacy', false);
+                return;
+            }
+            const tab = pathMap[path] || 'privacy';
+            switchTab(tab, false);
+        }
+
+        function switchTab(tabName, updateUrl = true) {
+            // Update content visibility
+            tabs.forEach(t => {
+                document.getElementById(`content-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabName) {
+                    btn.classList.remove('text-gray-400', 'hover:bg-white/5');
+                    btn.classList.add('text-white', 'bg-white/5', 'border', 'border-white/5');
+                } else {
+                    btn.classList.add('text-gray-400', 'hover:bg-white/5');
+                    btn.classList.remove('text-white', 'bg-white/5', 'border', 'border-white/5');
+                }
+            });
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+            // Generate TOC for the active tab
+            generateTOC(tabName);
+
+            // Scroll to top of main content
+            document.getElementById('main-scroll').scrollTop = 0;
+
+            // Close mobile menu if open
+            if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            // Update URL
+            if (updateUrl && tabPaths[tabName]) {
+                const newPath = tabPaths[tabName];
+                if (window.location.pathname !== newPath) {
+                    history.pushState({ tab: tabName }, '', newPath);
+                }
+            }
+        }
+
+        function generateTOC(tabName) {
+            const container = document.getElementById('toc-container');
+            container.innerHTML = '';
+
+            const content = document.getElementById(`content-${tabName}`);
+            if (!content) return;
+
+            const headings = content.querySelectorAll('h2');
+            headings.forEach((heading, index) => {
+                const section = heading.closest('section');
+                const id = section?.id || heading.id || `${tabName}-section-${index}`;
+                if (section && !section.id) {
+                    section.id = id;
+                } else if (!heading.id) {
+                    heading.id = id;
+                }
+
+                const a = document.createElement('a');
+                a.href = `#${id}`;
+                a.className = 'block px-4 py-2 text-sm text-gray-500 hover:text-white rounded-md hover:bg-white/5 transition-colors truncate';
+                a.textContent = heading.textContent.replace(/^\d+\.\s*/, '');
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    const target = document.getElementById(id);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                    }
+                };
+                container.appendChild(a);
+            });
+        }
+
+        // Mobile menu toggle
+        mobileMenuBtn?.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', (e) => {
+            const tab = e.state?.tab || pathMap[window.location.pathname] || 'privacy';
+            switchTab(tab, false);
+        });
+
+        // --- Form Handling ---
+        const form = document.getElementById('erasure-form');
+        const sendCodeBtn = document.getElementById('send-code-btn');
+        const verifySubmitBtn = document.getElementById('verify-submit-btn');
+        const resendCodeBtn = document.getElementById('resend-code-btn');
+        const cancelVerifyBtn = document.getElementById('cancel-verify-btn');
+        const verifyModal = document.getElementById('verify-modal');
+        const bannerSuccess = document.getElementById('banner-success');
+        const bannerError = document.getElementById('banner-error');
+        const errorMessage = document.getElementById('error-message');
+
+        function showSuccess(msg) {
+            bannerError.classList.add('hidden');
+            bannerSuccess.querySelector('p').textContent = msg;
+            bannerSuccess.classList.remove('hidden');
+            bannerSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function showError(msg) {
+            bannerSuccess.classList.add('hidden');
+            errorMessage.textContent = msg;
+            bannerError.classList.remove('hidden');
+            bannerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function getFormValues() {
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const fullName = document.getElementById('full-name').value.trim();
+            const confirmed = document.getElementById('confirm-checkbox').checked;
+            return { email, fullName, confirmed };
+        }
+
+        function validateForm() {
+            const { email, fullName, confirmed } = getFormValues();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                showError('Please enter a valid email address.');
+                document.getElementById('email').focus();
+                return null;
+            }
+            if (!fullName || fullName.length < 2) {
+                showError('Please enter your full name (at least 2 characters).');
+                document.getElementById('full-name').focus();
+                return null;
+            }
+            if (!confirmed) {
+                showError('You must confirm that you understand this action is irreversible.');
+                return null;
+            }
+            return { email, fullName, confirmed };
+        }
+
+        function setButtonLoading(btn, loading) {
+            btn.disabled = loading;
+            if (loading) {
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
+            } else {
+                btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+            }
+        }
+
+        async function sendVerificationCode() {
+            bannerSuccess.classList.add('hidden');
+            bannerError.classList.add('hidden');
+
+            const values = validateForm();
+            if (!values) return;
+
+            setButtonLoading(sendCodeBtn, true);
+
+            try {
+                const token = await account.createEmailToken(
+                    Appwrite.ID.unique(),
+                    values.email,
+                    true
+                );
+                verifiedUserId = token.userId;
+                verifyModal.classList.remove('hidden');
+                document.getElementById('otp-input').value = '';
+                document.getElementById('otp-input').focus();
+            } catch (error) {
+                console.error('Send code error:', error);
+                const detail = error?.response?.message || error?.message || 'Unknown error';
+                showError(`Failed to send verification code: ${detail}`);
+            } finally {
+                setButtonLoading(sendCodeBtn, false);
+            }
+        }
+
+        async function verifyAndSubmit() {
+            bannerSuccess.classList.add('hidden');
+            bannerError.classList.add('hidden');
+
+            const otp = document.getElementById('otp-input').value.trim();
+            if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+                const modalError = document.getElementById('modal-error');
+                if (modalError) {
+                    modalError.textContent = 'Please enter the 6-digit code sent to your email.';
+                    modalError.classList.remove('hidden');
+                }
+                document.getElementById('otp-input').focus();
+                return;
+            }
+
+            const { email, fullName, confirmed } = getFormValues();
+
+            setButtonLoading(verifySubmitBtn, true);
+
+            try {
+                await account.createSession(verifiedUserId, otp);
+
+                await databases.createDocument(
+                    DATABASE_ID,
+                    COLLECTION_ID,
+                    Appwrite.ID.unique(),
+                    {
+                        email: email,
+                        full_name: fullName,
+                        confirmed: confirmed,
+                        status: 'pending'
+                    }
+                );
+
+                verifyModal.classList.add('hidden');
+                showSuccess('Your request has been securely submitted. Our team will verify your identity and process the deletion within 30 days.');
+                form.reset();
+                verifiedUserId = null;
+            } catch (error) {
+                console.error('Verify/submit error:', error);
+                const detail = error?.response?.message || error?.message || 'Unknown error';
+                const modalError = document.getElementById('modal-error');
+                if (modalError) {
+                    modalError.textContent = detail;
+                    modalError.classList.remove('hidden');
+                }
+            } finally {
+                setButtonLoading(verifySubmitBtn, false);
+            }
+        }
+
+        sendCodeBtn.addEventListener('click', sendVerificationCode);
+        verifySubmitBtn.addEventListener('click', verifyAndSubmit);
+        resendCodeBtn.addEventListener('click', sendVerificationCode);
+
+        cancelVerifyBtn.addEventListener('click', () => {
+            verifyModal.classList.add('hidden');
+            verifiedUserId = null;
+        });
+
+        // Initialize
+        handleRoute();
+    </script>
+</body>
+</html>

@@ -9,6 +9,7 @@ import '../../models/recipe.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
+import '../../widgets/common/appwrite_image.dart';
 import '../../widgets/common/shimmer_loader.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
@@ -29,6 +30,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   bool _loading = true;
   bool _queuedPremiumPrompt = false;
   bool _buttonsVisible = false;
+  /// Resolved HTTP headers for the recipe image (Appwrite session / Wikimedia UA).
+  /// Initialised synchronously from cache, then refreshed async.
+  Map<String, String> _imageHeaders = const {};
 
   @override
   void initState() {
@@ -40,6 +44,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     if (local.isNotEmpty) {
       _recipe = local.first;
       _loading = false;
+      // Resolve headers synchronously from cache for instant hero image
+      if (_recipe!.imageUrl != null) {
+        _imageHeaders = AppwriteImage.resolveHeadersSync(_recipe!.imageUrl!);
+      }
     }
     _load();
   }
@@ -100,7 +108,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       if (mounted) setState(() => _loading = false);
     }
 
+    // Async-resolve image headers (covers cases where sync cache was empty)
     final recipe = _recipe;
+    if (recipe?.imageUrl != null && mounted) {
+      final headers = await AppwriteImage.resolveHeadersFor(recipe!.imageUrl!);
+      if (mounted && headers.isNotEmpty && _imageHeaders.isEmpty) {
+        setState(() => _imageHeaders = headers);
+      }
+    }
+
     final canAccessPremium = auth.hasPremium;
     if (recipe != null && (!recipe.isPremium || canAccessPremium)) {
       favProv.addRecentlyViewed(widget.recipeId);
@@ -220,10 +236,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     child: recipe.imageUrl != null
                                         ? CachedNetworkImage(
                                             imageUrl: recipe.imageUrl!,
+                                            cacheManager: AmttaiCacheManager(),
+                                            httpHeaders: _imageHeaders.isEmpty ? null : _imageHeaders,
                                             fit: BoxFit.cover,
                                             width: double.infinity,
                                             fadeInDuration: Duration.zero,
                                             fadeOutDuration: Duration.zero,
+                                            useOldImageOnUrlChange: true,
                                           )
                                         : Container(
                                             color: AppColors.surfaceVariant(
@@ -239,10 +258,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             child: recipe.imageUrl != null
                                 ? CachedNetworkImage(
                                     imageUrl: recipe.imageUrl!,
+                                    cacheManager: AmttaiCacheManager(),
+                                    httpHeaders: _imageHeaders.isEmpty ? null : _imageHeaders,
                                     fit: BoxFit.cover,
                                     width: double.infinity,
                                     fadeInDuration: Duration.zero,
                                     fadeOutDuration: Duration.zero,
+                                    useOldImageOnUrlChange: true,
                                   )
                                 : Container(
                                     color: AppColors.surfaceVariant(context),
@@ -664,6 +686,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               children: [
                                 CachedNetworkImage(
                                   imageUrl: step.imageUrl!.trim(),
+                                  cacheManager: AmttaiCacheManager(),
+                                  httpHeaders: AppwriteImage.resolveHeadersSync(step.imageUrl!.trim()).isEmpty
+                                      ? null
+                                      : AppwriteImage.resolveHeadersSync(step.imageUrl!.trim()),
                                   fit: BoxFit.cover,
                                   placeholder: (_, __) =>
                                       ShimmerLoader.card(height: 160),

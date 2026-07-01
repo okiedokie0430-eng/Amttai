@@ -49,7 +49,8 @@ export const collectionIds = {
   recipes: envOrDefault('APPWRITE_COLLECTION_RECIPES_ID', 'recipes'),
   ratings: envOrDefault('APPWRITE_COLLECTION_RATINGS_ID', 'ratings'),
   payments: envOrDefault('APPWRITE_COLLECTION_PAYMENTS_ID', 'payments'),
-  supportMessages: envOrDefault('APPWRITE_COLLECTION_SUPPORT_MESSAGES_ID', 'support_messages')
+  supportMessages: envOrDefault('APPWRITE_COLLECTION_SUPPORT_MESSAGES_ID', 'support_messages'),
+  dataErasureRequests: envOrDefault('APPWRITE_COLLECTION_DATA_ERASURE_REQUESTS_ID', 'data_erasure_requests')
 } as const;
 
 export const functionIds = {
@@ -104,7 +105,7 @@ export async function getCollectionAttributeKeys(collectionId: string) {
   }
 
   const listed = await databases.listAttributes(databaseId, collectionId);
-  const keys = new Set<string>(listed.attributes);
+  const keys = new Set<string>(listed.attributes.map((attr: any) => attr.key));
   collectionAttributeCache.set(collectionId, keys);
   return keys;
 }

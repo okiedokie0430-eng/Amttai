@@ -1,0 +1,27 @@
+{
+  "name": "amttai-mealdb-ingestion",
+  "version": "2.0.0",
+  "description": "MealDB ingestion tool with Express API + SSE dashboard backend.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "ingest": "node index.js",
+    "gemini": "node importer.js",
+    "wikibooks": "node wikibooks-importer.js",
+    "csv": "node csv-ingestion.js",
+    "bulk": "node bulk-push-csv.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "apache-arrow": "^21.1.0",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "google-translate-api-x": "^10.7.1",
+    "parquetjs": "^0.11.2",
+    "parquetjs-lite": "^0.8.7",
+    "wtf_wikipedia": "^10.3.2"
+  }
+}

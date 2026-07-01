@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/premium_recipe_access.dart';
 import '../../models/recipe.dart';
 import '../../providers/recipe_provider.dart';
+import '../../widgets/common/appwrite_image.dart';
 import 'widgets/add_ingredient_sheet.dart';
 
 class _RecipeMatchResult {
@@ -38,8 +38,10 @@ class _PantryScreenState extends State<PantryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final List<IngredientItem> _myIngredients = [];
+  final Map<String, List<_RecipeMatchResult>> _matchesCache = {};
 
   static const Map<String, String> _ingredientAliases = {
+    // Mongolian aliases for recipe ingredient matching
     'үхрийн мах': 'beef',
     'үхрийн': 'beef',
     'beef': 'beef',
@@ -115,16 +117,22 @@ class _PantryScreenState extends State<PantryScreen>
     'hot stones': 'hot stones',
   };
 
+  static const List<String> _stopWords = [
+    'cup', 'cups', 'tbsp', 'tsp', 'tablespoon', 'teaspoon',
+    'piece', 'pieces', 'slice', 'slices', 'small', 'large', 'medium',
+    'fresh', 'dried', 'can', 'package', 'oz', 'lb', 'gram', 'kg',
+    'мл', 'г', 'кг', 'ш', 'шүүс', 'хутга', 'хутганы', 'хутгатай',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+  ];
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
-
       final recipeProvider = context.read<RecipeProvider>();
       if (!recipeProvider.isLoading && recipeProvider.recipes.isEmpty) {
         recipeProvider.loadRecipes();
@@ -174,7 +182,11 @@ class _PantryScreenState extends State<PantryScreen>
     var value = raw.toLowerCase().trim();
     value = value.replaceAll(RegExp(r'[\(\)\[\],./:_-]'), ' ');
     value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
-
+    // Remove stop words
+    for (final stopWord in _stopWords) {
+      value = value.replaceAll(RegExp('\\b$stopWord\\b'), ' ');
+    }
+    value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
     return value;
   }
 
@@ -194,11 +206,24 @@ class _PantryScreenState extends State<PantryScreen>
   }
 
   Set<String> _tokenizeIngredient(String raw) {
-    return _canonicalIngredient(raw)
-        .split(' ')
-        .map((part) => part.trim())
-        .where((part) => part.length >= 2)
-        .toSet();
+    final canonical = _canonicalIngredient(raw);
+    if (canonical.isEmpty) return {};
+    
+    // Keep multi-word phrases intact (e.g., "chicken breast")
+    final phrases = <String>{};
+    final parts = canonical.split(' ').where((part) => part.length >= 2).toList();
+    
+    // Add 2-word phrases
+    for (int i = 0; i < parts.length - 1; i++) {
+      final phrase = '${parts[i]} ${parts[i + 1]}';
+      if (phrase.length >= 4) {
+        phrases.add(phrase);
+      }
+    }
+    // Add single words
+    phrases.addAll(parts);
+    
+    return phrases;
   }
 
   bool _isIngredientCovered({
@@ -210,38 +235,45 @@ class _PantryScreenState extends State<PantryScreen>
     if (required.isEmpty) {
       return false;
     }
-
+  
+    // Exact match is always best
     if (pantryNormalized.contains(required)) {
       return true;
     }
-
+  
+    // Check for substring matches (only if both are long enough to avoid false positives)
     for (final pantryValue in pantryNormalized) {
       if (pantryValue.isEmpty) {
         continue;
       }
-
-      final isSubstringMatch =
-          pantryValue.contains(required) || required.contains(pantryValue);
-      if (isSubstringMatch &&
-          (required.length >= 4 || pantryValue.length >= 4)) {
+      final isSubstringMatch = pantryValue.contains(required) || required.contains(pantryValue);
+      if (isSubstringMatch && required.length >= 4 && pantryValue.length >= 4) {
+        // Avoid false matches like "egg" matching "vegetable"
+        if (required.length <= 3 || pantryValue.length <= 3) {
+          continue;
+        }
         return true;
       }
     }
-
+  
+    // Token-based matching
     final requiredTokens = _tokenizeIngredient(required);
     if (requiredTokens.isEmpty) {
       return false;
     }
-
-    if (requiredTokens.contains('тос') && pantryTokens.contains('тос')) {
+  
+    // Special cases
+    if (requiredTokens.contains('oil') && pantryTokens.contains('oil')) {
       return true;
     }
-
-    final overlapCount = requiredTokens.where(pantryTokens.contains).length;
+  
+    // For short ingredients (1-2 tokens), require at least one token match
     if (requiredTokens.length <= 2) {
-      return overlapCount >= 1;
+      return requiredTokens.any((token) => pantryTokens.contains(token));
     }
-
+  
+    // For longer ingredients, require at least 2 token matches
+    final overlapCount = requiredTokens.where(pantryTokens.contains).length;
     return overlapCount >= 2;
   }
 
@@ -249,7 +281,7 @@ class _PantryScreenState extends State<PantryScreen>
     if (_myIngredients.isEmpty || recipes.isEmpty) {
       return const [];
     }
-
+  
     final pantryNormalized = _myIngredients
         .map((item) => _canonicalIngredient(item.name))
         .where((name) => name.isNotEmpty)
@@ -302,6 +334,16 @@ class _PantryScreenState extends State<PantryScreen>
       );
     }
 
+    // Generate cache key
+    final cacheKey = '${_myIngredients.map((i) => i.name).join('|')}||${recipes.map((r) => r.id).join('|')}';
+
+    // Return cached result if available
+    if (_matchesCache.containsKey(cacheKey)) {
+      return _matchesCache[cacheKey]!;
+    }
+
+    // Cache the result
+    _matchesCache[cacheKey] = results;
     return results;
   }
 
@@ -311,6 +353,7 @@ class _PantryScreenState extends State<PantryScreen>
     required List<_RecipeMatchResult> nearMatches,
     required Color textPrimary,
     required Color textSecondary,
+    required double bottomPadding,
   }) {
     if (_myIngredients.isEmpty) {
       return _buildEmptyState(
@@ -318,9 +361,10 @@ class _PantryScreenState extends State<PantryScreen>
         textPrimary,
         textSecondary,
         'assets/images/Recipes book animation.json',
-        title: 'Эхлээд агуулахдаа орц нэмээрэй.',
+        bottomPadding: bottomPadding,
+        title: 'Add ingredients to your pantry first.',
         description:
-            'Орцоо нэмсний дараа та шууд хийж болох жорууд энд харагдана.',
+            'After adding your ingredients, recipes you can make will appear here.',
       );
     }
 
@@ -334,17 +378,18 @@ class _PantryScreenState extends State<PantryScreen>
         textPrimary,
         textSecondary,
         'assets/images/Recipes book animation.json',
-        title: 'Тохирох жор олдсонгүй.',
-        description: 'Өөр орц нэмж үзвэл илүү олон жор санал болгоно.',
+        bottomPadding: bottomPadding,
+        title: 'No matching recipes found.',
+        description: 'Try adding more ingredients to get more recipe suggestions.',
       );
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, bottomPadding),
       children: [
         if (readyMatches.isNotEmpty) ...[
           Text(
-            'Таны орцоор шууд хийж болох жор',
+            'Recipes you can make right now',
             style: TextStyle(
               color: textPrimary,
               fontSize: 16,
@@ -353,7 +398,7 @@ class _PantryScreenState extends State<PantryScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            '${readyMatches.length} жор бүрэн таарч байна',
+            '${readyMatches.length} recipes fully matched',
             style: TextStyle(
               color: textSecondary,
               fontSize: 13,
@@ -370,7 +415,7 @@ class _PantryScreenState extends State<PantryScreen>
           ),
         ] else ...[
           Text(
-            'Шууд хийж болох жор алга.',
+            'No recipes you can make right now.',
             style: TextStyle(
               color: textPrimary,
               fontSize: 16,
@@ -379,7 +424,7 @@ class _PantryScreenState extends State<PantryScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Гэхдээ дөхсөн жорууд байна. Доорх жоруудаас нэгийг сонгоод дутуу орцоо нэмээрэй.',
+            'But there are some close matches. Pick one below and add the missing ingredients.',
             style: TextStyle(
               color: textSecondary,
               fontSize: 13,
@@ -393,7 +438,7 @@ class _PantryScreenState extends State<PantryScreen>
           if (readyMatches.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(
-              'Орц дутуу боловч дөхсөн жор',
+              'Almost ready recipes',
               style: TextStyle(
                 color: textPrimary,
                 fontSize: 15,
@@ -454,7 +499,7 @@ class _PantryScreenState extends State<PantryScreen>
                     height: 86,
                     child:
                         recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                        ? CachedNetworkImage(
+                        ? AppwriteImage(
                             imageUrl: recipe.imageUrl!,
                             fit: BoxFit.cover,
                           )
@@ -485,7 +530,7 @@ class _PantryScreenState extends State<PantryScreen>
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${match.matchedCount}/${match.totalCount} орц таарсан',
+                        '${match.matchedCount}/${match.totalCount} ingredients matched',
                         style: TextStyle(
                           color: match.canCook
                               ? AppColors.primary
@@ -496,15 +541,67 @@ class _PantryScreenState extends State<PantryScreen>
                       ),
                       if (!match.canCook) ...[
                         const SizedBox(height: 4),
-                        Text(
-                          'Дутуу: ${match.missingIngredients.take(2).join(', ')}${match.missingCount > 2 ? ' +' : ''}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final allMissing = match.missingIngredients.join(', ');
+                            final textSpan = TextSpan(
+                              text: 'Missing: ',
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: allMissing,
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            );
+                            final textPainter = TextPainter(
+                              text: textSpan,
+                              maxLines: 1,
+                              textDirection: TextDirection.ltr,
+                            )..layout();
+                            if (textPainter.width <= constraints.maxWidth) {
+                              return Text.rich(
+                                textSpan,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            } else {
+                              return SizedBox(
+                                height: 20,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: match.missingIngredients.length,
+                                  separatorBuilder: (_, __) => const SizedBox(width: 4),
+                                  itemBuilder: (context, index) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                                      ),
+                                      child: Text(
+                                        match.missingIngredients[index],
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ],
@@ -526,9 +623,14 @@ class _PantryScreenState extends State<PantryScreen>
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = AppColors.background(context);
+    final bgColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.background(context)
+        : Colors.white;
     final textPrimary = AppColors.textPrimary(context);
     final textSecondary = AppColors.textSecondary(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final scale = (screenWidth / 375.0).clamp(0.85, 1.15).toDouble();
+    final bottomNavClearance = (56.0 + 20.0 + 8.0) * scale + 16.0;
     final recipeProvider = context.watch<RecipeProvider>();
 
     final allMatches = _buildRecipeMatches(recipeProvider.recipes);
@@ -567,15 +669,18 @@ class _PantryScreenState extends State<PantryScreen>
           if (_tabController.index != 0) {
             return const SizedBox.shrink();
           }
-          return FloatingActionButton(
-            heroTag: 'addIngredient',
-            onPressed: _openAddIngredients,
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+          return Padding(
+            padding: EdgeInsets.only(bottom: bottomNavClearance),
+            child: FloatingActionButton(
+              heroTag: 'addIngredient',
+              onPressed: _openAddIngredients,
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.add_rounded, size: 32),
             ),
-            child: const Icon(Icons.add_rounded, size: 32),
           );
         },
       ),
@@ -589,7 +694,7 @@ class _PantryScreenState extends State<PantryScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Миний агуулах',
+                    'My Pantry',
                     style: TextStyle(
                       color: textPrimary,
                       fontSize: 28,
@@ -597,20 +702,7 @@ class _PantryScreenState extends State<PantryScreen>
                       letterSpacing: -0.5,
                     ),
                   ),
-                  AnimatedBuilder(
-                    animation: _tabController,
-                    builder: (context, _) {
-                      if (_tabController.index != 0) {
-                        return const SizedBox.shrink();
-                      }
-                      return IconButton(
-                        icon: Icon(Icons.search_rounded, color: textPrimary),
-                        onPressed: () {},
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                      );
-                    },
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
             ),
@@ -641,7 +733,7 @@ class _PantryScreenState extends State<PantryScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Миний орцнууд'),
+                        const Text('My Ingredients'),
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -669,7 +761,7 @@ class _PantryScreenState extends State<PantryScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Жорын санаанууд'),
+                        const Text('Recipe Ideas'),
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -714,14 +806,19 @@ class _PantryScreenState extends State<PantryScreen>
                           textPrimary,
                           textSecondary,
                           'assets/images/Food animation.json',
+                          bottomPadding: bottomNavClearance,
                         )
-                      : _buildIngredientsList(textPrimary),
+                      : _buildIngredientsList(
+                          textPrimary,
+                          bottomPadding: bottomNavClearance,
+                        ),
                   _buildRecipeIdeasTab(
                     recipeProvider: recipeProvider,
                     readyMatches: readyMatches,
                     nearMatches: nearMatches,
                     textPrimary: textPrimary,
                     textSecondary: textSecondary,
+                    bottomPadding: 0,
                   ),
                 ],
               ),
@@ -732,9 +829,9 @@ class _PantryScreenState extends State<PantryScreen>
     );
   }
 
-  Widget _buildIngredientsList(Color textPrimary) {
+  Widget _buildIngredientsList(Color textPrimary, {required double bottomPadding}) {
     return GridView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, bottomPadding),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 0.75,
@@ -833,11 +930,13 @@ class _PantryScreenState extends State<PantryScreen>
     Color textPrimary,
     Color textSecondary,
     String lottieAsset, {
-    String title = 'Таны хүнсний агуулах хоосон байна.',
+    double bottomPadding = 0,
+    String title = 'Your pantry is empty.',
     String description =
-        'Эхний орцоо нэмээд эсвэл хамгийн түгээмэл хэрэглэгддэг орцуудыг нэмж хурдан эхлээрэй.',
+        'Add your first ingredient or quickly add commonly used ingredients to get started.',
   }) {
     return SingleChildScrollView(
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: Column(
         children: [
           const SizedBox(height: 40),

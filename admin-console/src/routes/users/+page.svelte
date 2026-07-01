@@ -13,24 +13,24 @@
 </script>
 
 <svelte:head>
-  <title>Users - Admin</title>
+  <title>Users — Amttai Admin</title>
 </svelte:head>
 
 <h1 class="page-title">Users</h1>
-<p class="muted" style="margin-top: -6px; margin-bottom: 16px;">
+<p class="page-subtitle">
   Manage premium access and serialized custom user IDs.
 </p>
 
 {#if data.loadError}
-  <p class="badge err" style="margin-bottom: 12px;">{data.loadError}</p>
+  <p class="flash err">{data.loadError}</p>
 {/if}
 
 {#if form?.message}
-  <p class="badge ok" style="margin-bottom: 12px;">{form.message}</p>
+  <p class="flash ok">{form.message}</p>
 {/if}
 
 {#if form?.error}
-  <p class="badge err" style="margin-bottom: 12px;">{form.error}</p>
+  <p class="flash err">{form.error}</p>
 {/if}
 
 <section class="card" style="margin-bottom: 16px; display: flex; justify-content: space-between; gap: 12px; align-items: center;">

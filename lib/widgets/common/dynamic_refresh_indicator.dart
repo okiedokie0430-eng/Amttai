@@ -112,7 +112,7 @@ class _DynamicRefreshIndicatorState extends State<DynamicRefreshIndicator>
                       child: ColorFiltered(
                         colorFilter: const ColorFilter.mode(
                           AppColors.primary,
-                          BlendMode.srcATop,
+                          BlendMode.srcIn,
                         ),
                         child: Lottie.asset(
                           widget.animationAsset,

@@ -1,0 +1,19 @@
+flutter_native_splash:
+  # Background color = app primary #FF6B35
+  color: "#FF6B35"
+  color_dark: "#E55A2B"
+
+  # Branding image at the bottom (removed as requested)
+  # branding: assets/icons/brand.png
+  # branding_dark: assets/icons/brand.png
+  # branding_mode: bottom
+
+  android: true
+  ios: false
+
+  android_12:
+    color: "#FF6B35"
+    color_dark: "#E55A2B"
+    # branding: assets/icons/brand.png
+    # branding_dark: assets/icons/brand.png
+    # branding_mode: bottom

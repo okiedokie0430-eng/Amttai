@@ -1,11 +1,11 @@
-﻿import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import 'auth_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,189 +37,71 @@ class _LoginScreenState extends State<LoginScreen> {
     if (auth.isLoggedIn) {
       context.go('/home');
     } else if (auth.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error!)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(auth.error!)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final textTheme = Theme.of(context).textTheme;
-    final textPrimary = AppColors.textPrimary(context);
     final textSecondary = AppColors.textSecondary(context);
 
-    // Custom underline input decoration matching the sleek reference UI
-    final inputDecoration = InputDecoration(
-      enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: AppColors.border(context)),
-      ),
-      focusedBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
-      ),
-      errorBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
-      ),
-      focusedErrorBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.redAccent, width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-      isDense: true,
-    );
-
-    return Scaffold(
-      backgroundColor: AppColors.background(context),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: Theme.of(context).brightness == Brightness.light
-            ? SystemUiOverlayStyle.dark
-            : SystemUiOverlayStyle.light,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: textPrimary, size: 26),
-          onPressed: () => context.pop(),
+    return AuthScaffold(
+      formKey: _formKey,
+      title: 'Login',
+      subtitle: 'Welcome! Join your Amttai journey.',
+      children: [
+        AuthTextField(
+          controller: _emailCtrl,
+          label: 'Email',
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          validator: (v) {
+            if (v == null || v.trim().isEmpty) return S.requiredField;
+            if (!v.contains('@')) return S.invalidEmail;
+            return null;
+          },
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                // Heading
-                Text(
-                  'Нэвтрэх', // Log In
-                  style: textTheme.headlineLarge?.copyWith(
-                    color: textPrimary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Subtitle
-                Text(
-                  "Тавтай морилно уу! Амттай аялалдаа нэгдээрэй.",
-                  style: textTheme.titleMedium?.copyWith(
-                    color: textSecondary,
-                    height: 1.4,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 64),
-
-                // Email Label + Field
-                Text(
-                  'И-мэйл',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: textSecondary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
-                  cursorColor: AppColors.primary,
-                  decoration: inputDecoration,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return S.requiredField;
-                    if (!v.contains('@')) return S.invalidEmail;
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 36),
-
-                // Password Label + Field
-                Text(
-                  'Нууц үг',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: textSecondary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  obscureText: true,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _submit(),
-                  style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
-                  cursorColor: AppColors.primary,
-                  decoration: inputDecoration,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return S.requiredField;
-                    if (v.length < 8) return S.passwordTooShort;
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 32),
-
-                // Forgot Password Link
-                Center(
-                  child: GestureDetector(
-                    onTap: () => context.push('/forgot-password'),
-                    child: Text(
-                      'НУУЦ ҮГЭЭ МАРТСАН',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                        decoration: TextDecoration.underline,
-                        decorationColor: textSecondary,
-                        decorationThickness: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 48),
-
-                // Start Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: auth.isLoading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: auth.isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                          )
-                        : const Text(
-                            'ТОГООЧИЛЖ ЭХЭЛЬЕ!', // START COOKING!
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-              ],
+        const SizedBox(height: 24),
+        AuthTextField(
+          controller: _passwordCtrl,
+          label: 'Password',
+          obscureText: true,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _submit(),
+          validator: (v) {
+            if (v == null || v.isEmpty) return S.requiredField;
+            if (v.length < 8) return 'At least 8 characters required';
+            return null;
+          },
+        ),
+        const SizedBox(height: 24),
+        Center(
+          child: GestureDetector(
+            onTap: () => context.push('/forgot-password'),
+            child: Text(
+              'FORGOT PASSWORD',
+              style: TextStyle(
+                color: textSecondary,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+                decoration: TextDecoration.underline,
+                decorationColor: textSecondary,
+                decorationThickness: 1.5,
+              ),
             ),
           ),
         ),
-      ),
+        const SizedBox(height: 48),
+        AuthButton(
+          onPressed: auth.isLoading ? null : _submit,
+          isLoading: auth.isLoading,
+          label: 'LET\'S START COOKING!',
+        ),
+      ],
     );
   }
 }

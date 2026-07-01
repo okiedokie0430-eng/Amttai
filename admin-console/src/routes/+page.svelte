@@ -6,21 +6,21 @@
 </script>
 
 <svelte:head>
-  <title>Admin Dashboard</title>
+  <title>Dashboard — Amttai Admin</title>
 </svelte:head>
 
-<h1 class="page-title">Backend Overview</h1>
-<p class="muted" style="margin-top: -6px; margin-bottom: 16px;">
+<h1 class="page-title">Dashboard</h1>
+<p class="page-subtitle">
   Central control for Appwrite data, premium lifecycle, and operational health.
 </p>
 
 {#if data.loadError}
-  <p class="badge err" style="margin-bottom: 12px;">{data.loadError}</p>
+  <p class="flash err">{data.loadError}</p>
 {/if}
 
 <section class="grid">
   {#each data.stats as stat}
-    <article class="card">
+    <article class="card stat-card">
       <h3>{stat.label}</h3>
       <strong>{stat.value}</strong>
     </article>

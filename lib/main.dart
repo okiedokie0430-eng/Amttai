@@ -1,5 +1,6 @@
-﻿import 'dart:async';
+import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -15,9 +16,18 @@ import 'providers/recipe_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/appwrite_service.dart';
 import 'services/push_notification_service.dart';
+import 'services/recipe_audio_service.dart';
+import 'services/recommendation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString(
+      'assets/fonts/Montserrat-OFL.txt',
+    );
+    yield LicenseEntryWithLineBreaks(['Montserrat'], license);
+  });
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -38,6 +48,10 @@ Future<void> main() async {
   );
 
   AppwriteService.instance.init();
+  RecipeAudioService().init(AppwriteService.instance.storage);
+
+  // Initialize Native Recommendation Engine
+  unawaited(RecommendationService.initEngine('default_user'));
 
   runApp(const AmttaiApp());
 
@@ -67,7 +81,7 @@ class AmttaiApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (_, themeProvider, __) {
           return MaterialApp.router(
-            title: 'Амттай',
+            title: 'Amttai',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,

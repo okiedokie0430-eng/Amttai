@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/premium_recipe_access.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
+import '../../widgets/common/appwrite_image.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/fade_slide_in.dart';
 
@@ -22,40 +23,41 @@ class _SearchScreenState extends State<SearchScreen> {
   final _ctrl = TextEditingController();
   final _focusNode = FocusNode();
   bool _isFocused = false;
+  Timer? _debounce;
 
   final List<Map<String, dynamic>> _meals = [
     {
-      'name': 'Өглөөний цай',
+      'name': 'Breakfast',
       'emoji': '🍳',
       'color': const Color(0xFFFFF0D4),
       'accent': const Color(0xFFFFD280),
     },
     {
-      'name': 'Бранч',
+      'name': 'Brunch',
       'emoji': '🥞',
       'color': const Color(0xFFFFE4E1),
       'accent': const Color(0xFFFFB3B3),
     },
     {
-      'name': 'Өдрийн хоол',
+      'name': 'Lunch',
       'emoji': '🥗',
       'color': const Color(0xFFE8F5E9),
       'accent': const Color(0xFFA5D6A7),
     },
     {
-      'name': 'Оройн хоол',
+      'name': 'Dinner',
       'emoji': '🥘',
       'color': const Color(0xFFE3F2FD),
       'accent': const Color(0xFF90CAF9),
     },
     {
-      'name': 'Хөнгөн зууш',
+      'name': 'Snack',
       'emoji': '🥪',
       'color': const Color(0xFFFFF3E0),
       'accent': const Color(0xFFB3E5FC),
     },
     {
-      'name': 'Амттан',
+      'name': 'Dessert',
       'emoji': '🍰',
       'color': const Color(0xFFF3E5F5),
       'accent': const Color(0xFFCE93D8),
@@ -72,13 +74,19 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _ctrl.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
   void _onChanged(String q) {
-    context.read<RecipeProvider>().search(q);
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        context.read<RecipeProvider>().search(q);
+      }
+    });
     setState(() {});
   }
 
@@ -150,7 +158,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 : AppColors.surfaceVariant(
                                     context,
                                   ).withValues(alpha: 0.6),
-                            hintText: 'Хайх... (EN түлхүүр үг дэмжинэ)',
+                            hintText: 'Search recipes...',
                             hintStyle: TextStyle(
                               color: AppColors.textTertiary(context),
                               fontSize: 16,
@@ -275,7 +283,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Text(
-              'Хоолны төрлөөр хайх',
+              'Browse by Meal Type',
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
@@ -372,7 +380,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_ctrl.text.isEmpty && rp.searchResults.isEmpty) {
       return Center(
         child: Text(
-          'Түлхүүр үгээ оруулна уу',
+          'Enter a keyword to search',
           style: TextStyle(color: AppColors.textTertiary(context)),
         ),
       );
@@ -410,9 +418,11 @@ class _SearchScreenState extends State<SearchScreen> {
                       width: 140,
                       height: double.infinity,
                       child: recipe.imageUrl != null
-                          ? CachedNetworkImage(
+                          ? AppwriteImage(
                               imageUrl: recipe.imageUrl!,
                               fit: BoxFit.cover,
+                              memCacheHeight: 400,
+                              filterQuality: FilterQuality.low,
                               fadeInDuration: Duration.zero,
                               fadeOutDuration: Duration.zero,
                             )
@@ -441,7 +451,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Орц: ${recipe.category}...',
+                                'Category: ${recipe.category}...',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.bodySmall?.copyWith(
@@ -458,7 +468,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${recipe.cookTimeMinutes} мин',
+                                    '${recipe.cookTimeMinutes} min',
                                     style: textTheme.bodySmall?.copyWith(
                                       color: AppColors.textSecondary(context),
                                     ),
@@ -471,7 +481,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '2 хүн',
+                                    '2 servings',
                                     style: textTheme.bodySmall?.copyWith(
                                       color: AppColors.textSecondary(context),
                                     ),
@@ -495,7 +505,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      'Монгол тогооч',
+                                      'Mongolian Chef',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: textTheme.bodySmall?.copyWith(

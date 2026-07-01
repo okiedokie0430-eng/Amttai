@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -117,7 +117,7 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           const Text(
-                            'АМТТАЙ',
+                            'AMTTAI',
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
@@ -128,13 +128,13 @@ class WelcomeScreen extends StatelessWidget {
                         ],
                       )
                       .animate(target: shouldAnimate ? 1.0 : 0.0)
-                      .fadeIn(duration: 800.ms),
+                      .fadeIn(duration: 500.ms),
 
                   const SizedBox(height: 20),
 
                   // Catchy Subtitle
                   const Text(
-                        'Өөртөө итгэлтэйгээр\nтогоочил',
+                        'Cook with\nConfidence',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 34,
@@ -145,7 +145,7 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       )
                       .animate(target: shouldAnimate ? 1.0 : 0.0)
-                      .fadeIn(delay: 200.ms, duration: 800.ms),
+                      .fadeIn(delay: 80.ms, duration: 500.ms),
 
                   const Spacer(flex: 5),
 
@@ -172,7 +172,7 @@ class WelcomeScreen extends StatelessWidget {
                                   color: Colors.black,
                                 ),
                                 label: const Text(
-                                  'И-МЭЙЛЭЭР НЭВТРЭХ',
+                                  'LOGIN WITH EMAIL',
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w900,
@@ -215,7 +215,7 @@ class WelcomeScreen extends StatelessWidget {
                         ],
                       )
                       .animate(target: shouldAnimate ? 1.0 : 0.0)
-                      .fadeIn(delay: 500.ms, duration: 600.ms),
+                      .fadeIn(delay: 200.ms, duration: 400.ms),
 
                   const SizedBox(height: 16),
 
@@ -226,7 +226,7 @@ class WelcomeScreen extends StatelessWidget {
                         onTap: () => context.push('/register'),
                         child: RichText(
                           text: const TextSpan(
-                            text: 'Шинэ хэрэглэгч үү? ',
+                            text: 'New user? ',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -234,7 +234,7 @@ class WelcomeScreen extends StatelessWidget {
                             ),
                             children: [
                               TextSpan(
-                                text: 'Бүртгүүлэх',
+                                text: 'Register',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   decoration: TextDecoration.underline,
@@ -245,14 +245,14 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       )
                       .animate(target: shouldAnimate ? 1.0 : 0.0)
-                      .fadeIn(delay: 700.ms, duration: 600.ms),
+                      .fadeIn(delay: 300.ms, duration: 400.ms),
 
                   const SizedBox(height: 24),
 
                   // Terms and Privacy Notes
                   Text.rich(
                         TextSpan(
-                          text: 'Амттай апп-ийг ашигласнаар та манай ',
+                          text: 'By using the Amttai app, you agree to our ',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.white70,
@@ -261,27 +261,27 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                           children: const [
                             TextSpan(
-                              text: 'Нууцлалын бодлого',
+                              text: 'Privacy Policy',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 decoration: TextDecoration.underline,
                               ),
                             ),
-                            TextSpan(text: '\nболон '),
+                            TextSpan(text: '\nand '),
                             TextSpan(
-                              text: 'Үйлчилгээний нөхцөл',
+                              text: 'Terms of Service',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 decoration: TextDecoration.underline,
                               ),
                             ),
-                            TextSpan(text: '-ийг хүлээн зөвшөөрсөнд тооцно.'),
+                            TextSpan(text: '.'),
                           ],
                         ),
                         textAlign: TextAlign.center,
                       )
                       .animate(target: shouldAnimate ? 1.0 : 0.0)
-                      .fadeIn(delay: 800.ms, duration: 600.ms),
+                      .fadeIn(delay: 400.ms, duration: 400.ms),
 
                   const SizedBox(height: 20),
                 ],

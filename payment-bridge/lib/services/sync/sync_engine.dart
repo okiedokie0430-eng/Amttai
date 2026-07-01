@@ -150,7 +150,7 @@ class SyncEngine {
     return SyncStatus(
       pendingCount: pendingCount,
       isSyncing: _isSyncing,
-      lastSyncTime: DateTime.now(), // TODO: track actual last sync
+      lastSyncTime: DateTime.now()
     );
   }
 }

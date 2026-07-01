@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +7,7 @@ import '../../core/utils/premium_recipe_access.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/recipe_provider.dart';
+import '../../widgets/common/appwrite_image.dart';
 import '../../widgets/common/user_avatar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -56,8 +56,8 @@ class ProfileScreen extends StatelessWidget {
                         context,
                       ).withValues(alpha: 0.2),
                       tabs: const [
-                        Tab(text: 'Хадгалсан'),
-                        Tab(text: 'Сүүлд үзсэн'),
+                        Tab(text: 'Saved'),
+                        Tab(text: 'Recently Viewed'),
                       ],
                     ),
                   ),
@@ -70,7 +70,7 @@ class ProfileScreen extends StatelessWidget {
                 _RecipeList(
                   bgColor: bgColor,
                   heroPrefix: 'profile_',
-                  emptyMessage: 'Та хараахан жор хадгалаагүй байна.',
+                  emptyMessage: 'You haven\'t saved any recipes yet.',
                   emptyIcon: Icons.favorite_rounded,
                   recipesBuilder: (context) {
                     final rp = context.watch<RecipeProvider>();
@@ -82,7 +82,7 @@ class ProfileScreen extends StatelessWidget {
                 _RecipeList(
                   bgColor: bgColor,
                   heroPrefix: 'profile_recent_',
-                  emptyMessage: 'Сүүлд үзсэн жор байхгүй байна.',
+                  emptyMessage: 'No recently viewed recipes.',
                   emptyIcon: Icons.history_rounded,
                   recipesBuilder: (context) {
                     final rp = context.watch<RecipeProvider>();
@@ -154,14 +154,15 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user?.name.isNotEmpty == true ? user!.name : 'Очирсүх',
+                      user?.name.isNotEmpty == true ? user!.name : 'User',
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary(context),
                         fontSize: 24,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    // V1.0: PREMIUM/FREE badge hidden — restore for V1.1.
+                    /* const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -184,7 +185,7 @@ class ProfileScreen extends StatelessWidget {
                           letterSpacing: 1.2,
                         ),
                       ),
-                    ),
+                    ), */
                   ],
                 ),
               ),
@@ -278,7 +279,7 @@ class _RecipeList extends StatelessWidget {
                         width: 140,
                         height: double.infinity,
                         child: recipe.imageUrl != null
-                            ? CachedNetworkImage(
+                            ? AppwriteImage(
                                 imageUrl: recipe.imageUrl!,
                                 fit: BoxFit.cover,
                                 fadeInDuration: Duration.zero,
@@ -309,7 +310,7 @@ class _RecipeList extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  'Орц: ${recipe.category}...',
+                                  'Category: ${recipe.category}...',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: textTheme.bodySmall?.copyWith(
@@ -326,7 +327,7 @@ class _RecipeList extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${recipe.cookTimeMinutes} мин',
+                                      '${recipe.cookTimeMinutes} min',
                                       style: textTheme.bodySmall?.copyWith(
                                         color: AppColors.textSecondary(context),
                                       ),

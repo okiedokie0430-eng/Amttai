@@ -9,28 +9,38 @@
     { href: '/payments', label: 'Payments' },
     { href: '/notifications', label: 'Notifications' },
     { href: '/support', label: 'Support' },
+    { href: '/data-deletion', label: 'Data Deletion' },
     { href: '/functions', label: 'Functions' }
   ];
+
+  function isActive(href: string) {
+    const path = $page.url.pathname;
+    if (href === '/') return path === '/';
+    return path === href || path.startsWith(href + '/');
+  }
 </script>
 
 <div class="app-shell">
-  <header class="topbar">
-    <div class="brand">Amttai Admin Console</div>
-    <nav class="nav" aria-label="Primary">
+  <aside class="sidebar">
+    <div class="sidebar-brand">Amttai</div>
+    <nav class="sidebar-nav" aria-label="Primary">
       {#each links as link}
-        <a href={link.href} class:active={$page.url.pathname === link.href}>{link.label}</a>
+        <a href={link.href} class:active={isActive(link.href)}>
+          {link.label}
+        </a>
       {/each}
     </nav>
-    <a class="button" href="/logout">Sign out</a>
-  </header>
+    <div class="sidebar-footer">
+      <a href="/logout">Sign out</a>
+    </div>
+  </aside>
 
-  <main class="content">
-    <slot />
-  </main>
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-title">Admin Console</div>
+    </header>
+    <main class="content">
+      <slot />
+    </main>
+  </div>
 </div>
-
-<style>
-  a.active {
-    font-weight: 700;
-  }
-</style>

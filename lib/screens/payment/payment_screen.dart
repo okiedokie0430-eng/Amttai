@@ -46,6 +46,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         title: Text(S.premiumTitle, style: textTheme.titleLarge),
       ),
+      // V1.0: Payment body hidden for Google Play review — restore for V1.1.
+      body: const SizedBox.shrink(),
+      /* V1.0 — full payment UI preserved below
       body: SafeArea(
         child: IndexedStack(
           index: pp.currentStep,
@@ -56,9 +59,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ],
         ),
       ),
+      */
     );
   }
 
+  // ignore: unused_element
   Widget _planSelection(PaymentProvider pp, TextTheme textTheme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -80,7 +85,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
               onPressed: pp.selectedPlan == null || pp.isLoading
                   ? null
                   : () {
-                      final name = context.read<AuthProvider>().user?.name ?? 'USER';
+                      final name =
+                          context.read<AuthProvider>().user?.name ?? 'USER';
                       pp.preparePayment(name);
                     },
               child: pp.isLoading
@@ -164,10 +170,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _paymentInstructions(PaymentProvider pp, TextTheme textTheme) {
     final plan = pp.selectedPlan;
     if (plan == null) {
-      return const Center(child: Text('Багц сонгоно уу'));
+      return const Center(child: Text('Select a Plan'));
     }
 
     return SingleChildScrollView(
@@ -197,10 +204,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _infoRow('Банк', AppConfig.bankName),
-                _infoRow('Дансны дугаар', AppConfig.bankAccountNumber),
-                _infoRow('Дансны нэр', AppConfig.bankAccountHolder),
-                _infoRow('Дүн', _formatMNT(plan.priceMNT)),
+                _infoRow('Bank', AppConfig.bankName),
+                _infoRow('Account Number', AppConfig.bankAccountNumber),
+                _infoRow('Account Holder', AppConfig.bankAccountHolder),
+                _infoRow('Amount', _formatMNT(plan.priceMNT)),
               ],
             ),
           ),
@@ -286,7 +293,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         return;
                       }
 
-                      final userId = context.read<AuthProvider>().user?.id ?? '';
+                      final userId =
+                          context.read<AuthProvider>().user?.id ?? '';
                       await pp.submitPayment(
                         userId: userId,
                         transactionId: txId,
@@ -316,28 +324,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _infoRow(String label, String value) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary(context),
-              ),
-            ),
-            Flexible(
-              child: Text(
-                value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary(context),
+          ),
         ),
-      );
+        Flexible(
+          child: Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
 
+  // ignore: unused_element
   Widget _confirmation(PaymentProvider pp, TextTheme textTheme) {
     final status = pp.latestPayment?.status;
     final success = status == PaymentStatus.approved;
@@ -353,22 +362,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
               success
                   ? Icons.check_circle_rounded
                   : rejected
-                      ? Icons.cancel_rounded
-                      : Icons.hourglass_top_rounded,
+                  ? Icons.cancel_rounded
+                  : Icons.hourglass_top_rounded,
               size: 72,
               color: success
                   ? AppColors.success
                   : rejected
-                      ? AppColors.error
-                      : AppColors.primary,
+                  ? AppColors.error
+                  : AppColors.primary,
             ),
             const SizedBox(height: 24),
             Text(
               success
                   ? S.paymentSuccess
                   : rejected
-                      ? S.paymentFailed
-                      : S.paymentPending,
+                  ? S.paymentFailed
+                  : S.paymentPending,
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -376,10 +385,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(height: 8),
             Text(
               success
-                  ? 'Таны премиум эрх идэвхжлээ!'
+                  ? 'Your Premium access is now active!'
                   : rejected
-                      ? 'Төлбөрийн баталгаажуулалт амжилтгүй боллоо. Дахин оролдоно уу.'
-                      : 'Таны төлбөр админ-аар баталгаажих болно. Та хэсэг хүлээнэ үү.',
+                  ? 'Payment verification failed. Please try again.'
+                  : 'Your payment will be verified by admin. Please wait a moment.',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary(context),

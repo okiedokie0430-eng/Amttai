@@ -124,7 +124,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
-            'Зураг амжилттай сонгогдлоо. Хадгалах товч дарж баталгаажуулна уу.',
+            'Photo selected successfully. Press save to confirm.',
           ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -137,7 +137,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Зураг оруулахад алдаа гарлаа: $e\n\nСанамж: Appwrite Storage -> profile_photos bucket дээр Create эрх шалгана уу.',
+              'Failed to upload photo: $e\n\nNote: Please check Create permissions on the Appwrite Storage -> profile_photos bucket.',
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: AppColors.error,
@@ -162,7 +162,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (newName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Нэр хоосон байж болохгүй'),
+          content: const Text('Name cannot be empty'),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.error,
           shape: RoundedRectangleBorder(
@@ -194,7 +194,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Профайл амжилттай шинэчлэгдлээ'),
+          content: const Text('Profile updated successfully'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -205,7 +205,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Алдаа: $e'),
+            content: Text('Error: $e'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: AppColors.error,
             shape: RoundedRectangleBorder(
@@ -229,7 +229,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     final previewName = _nameCtrl.text.trim().isNotEmpty
         ? _nameCtrl.text.trim()
-        : (user?.name ?? 'Хэрэглэгч');
+        : (user?.name ?? 'User');
     final canSave = !_saving && !_uploadingPhoto && _hasPendingChanges;
 
     return Scaffold(
@@ -241,7 +241,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Профайл засах', style: textTheme.titleLarge),
+        title: Text('Edit Profile', style: textTheme.titleLarge),
         centerTitle: true,
       ),
       body: ListView(
@@ -269,16 +269,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     isPremium: auth.hasPremium,
                     size: 112,
                   ),
-                const SizedBox(height: 12),
+                // V1.0: Premium/Free frame label hidden — restore for V1.1.
+                /* const SizedBox(height: 12),
                 Text(
                   auth.hasPremium
-                      ? 'Premium хүрээ идэвхтэй'
-                      : 'Free хүрээ идэвхтэй',
+                      ? 'Premium Active'
+                      : 'Free Active',
                   style: textTheme.labelLarge?.copyWith(
                     color: AppColors.textSecondary(context),
                     fontWeight: FontWeight.w700,
                   ),
-                ),
+                ), */
               ],
             ),
           ),
@@ -293,7 +294,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Нэр',
+                  'Name',
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textSecondary(context),
@@ -308,7 +309,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       color: AppColors.textTertiary(context),
                       size: 20,
                     ),
-                    hintText: 'Нэрээ оруулна уу',
+                    hintText: 'Enter your name',
                     hintStyle: TextStyle(
                       color: AppColors.textTertiary(context),
                       fontSize: 14,
@@ -342,7 +343,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           Row(
             children: [
               Text(
-                'Аватар сонгох',
+                'Choose Avatar',
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary(context),
@@ -352,7 +353,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               TextButton.icon(
                 onPressed: _uploadingPhoto ? null : _pickAndUploadPhoto,
                 icon: const Icon(Icons.add_a_photo_rounded, size: 18),
-                label: const Text('Өөр зураг оруулах'),
+                label: const Text('Upload Photo'),
               ),
             ],
           ),
@@ -446,7 +447,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ),
                     )
                   : const Text(
-                      'Хадгалах',
+                      'Save',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,

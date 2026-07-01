@@ -11,25 +11,27 @@ class PremiumScreen extends StatefulWidget {
 }
 
 class _PremiumScreenState extends State<PremiumScreen> {
-  int _selectedPlanIndex = 0;
+  // V1.0: Plan fields hidden for Google Play review — restore for V1.1.
+  /* int _selectedPlanIndex = 0;
 
   final List<Map<String, dynamic>> _plans = [
     {
-      'title': '1 Сар',
+      'title': '1 Month',
       'price': '6,000 ₮',
-      'sub': 'Сард',
+      'sub': 'Monthly',
     },
     {
-      'title': '3 Сар',
+      'title': '3 Months',
       'price': '15,000 ₮',
-      'sub': 'Улиралд',
+      'sub': 'Quarterly',
     },
     {
-      'title': '1 Жил',
+      'title': '1 Year',
       'price': '38,000 ₮',
-      'sub': 'Жилд',
+      'sub': 'Yearly',
     },
   ];
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
           children: [
             // Top Bar
             Padding(
-              padding: const EdgeInsets.only(top: 8.0, right: 16.0, bottom: 4.0),
+              padding: const EdgeInsets.only(
+                top: 8.0,
+                right: 16.0,
+                bottom: 4.0,
+              ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
@@ -54,7 +60,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
             ),
 
-            // Header Title
+            // V1.0: Payment header hidden for Google Play review — restore for V1.1.
+            /* Header Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -71,20 +78,20 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       ),
                       children: [
                         TextSpan(
-                          text: 'ПРЕМИУМ ',
+                          text: 'PREMIUM ',
                           style: TextStyle(color: AppColors.primary),
                         ),
-                        const TextSpan(text: 'АВЧ,\n'),
-                        const TextSpan(text: 'ХЯЗГААРГҮЙ ЖОРОО\n'),
-                        const TextSpan(text: 'ИДЭВХЖҮҮЛЭЭРЭЙ'),
+                        const TextSpan(text: 'TO GET\n'),
+                        const TextSpan(text: 'UNLIMITED RECIPES\n'),
+                        const TextSpan(text: 'UNLOCKED'),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            
             const SizedBox(height: 20),
+            */
 
             // Middle Animation and Descriptive Text
             Expanded(
@@ -101,7 +108,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Премиум эрхтэйгээр та бүх жор болон шинээр нэмэгдэх жоруудыг үзэх боломжтой. Цаашид премиумын олон шинэ боломжууд нэмэгдэнэ.',
+                      'With Premium access, you can view all recipes and new recipes added. Many new premium features will be added soon.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
@@ -115,7 +122,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            // V1.0: Plan selectors and buy button hidden for Google Play review — restore for V1.1.
+            /* const SizedBox(height: 24),
 
             // Plan Selectors
             Padding(
@@ -135,8 +143,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
-                          color: isSelected 
-                              ? AppColors.primary.withValues(alpha: 0.05) 
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.05)
                               : Colors.transparent,
                           border: Border.all(
                             color: isSelected ? AppColors.primary : AppColors.border(context),
@@ -190,7 +198,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   child: Column(
                     children: [
                       const Text(
-                        'Одоо идэвхжүүлэх',
+                        'Activate Now',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -199,7 +207,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Нийт  / ',
+                        'Total  / ',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 13,
@@ -212,6 +220,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            */
           ],
         ),
       ),

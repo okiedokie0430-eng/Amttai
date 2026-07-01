@@ -42,110 +42,39 @@ class RecipeService {
   }
 
   /// Full-text search (uses Appwrite search query).
-  Future<List<Recipe>> searchRecipes(String query, {int limit = 25}) async {
-    final normalized = query.trim();
+  Future<List<Recipe>> searchRecipes(String query, {int limit = 20}) async {
+    final normalized = query.trim().toLowerCase();
     if (normalized.isEmpty) {
       return const [];
     }
 
-    final merged = <String, Recipe>{};
-
-    Future<void> collectSearch(String field) async {
+    try {
+      final result = await _db.listDocuments(
+        databaseId: AppConfig.databaseId,
+        collectionId: AppConfig.recipesCollection,
+        queries: [
+          Query.search('title', normalized),
+          Query.limit(limit),
+        ],
+      );
+      
+      return result.documents.map((d) => Recipe.fromJson(d.data)).toList();
+    } catch (_) {
+      // Fallback if full-text index fails or is unavailable
       try {
-        final result = await _db.listDocuments(
+        final fallbackResult = await _db.listDocuments(
           databaseId: AppConfig.databaseId,
           collectionId: AppConfig.recipesCollection,
           queries: [
-            Query.search(field, normalized),
+            Query.equal('category', normalized),
             Query.limit(limit),
           ],
         );
-
-        Future<void> collectEnglishKeywordMatches() async {
-          final normalizedLower = normalized.toLowerCase();
-          final terms = <String>{
-            normalizedLower,
-            ...normalizedLower
-                .split(RegExp(r'\s+'))
-                .map((part) => part.trim())
-                .where((part) => part.isNotEmpty),
-          };
-
-          for (final term in terms) {
-            try {
-              final result = await _db.listDocuments(
-                databaseId: AppConfig.databaseId,
-                collectionId: AppConfig.recipesCollection,
-                queries: [
-                  Query.equal('english_keywords', term),
-                  Query.limit(limit),
-                ],
-              );
-
-              for (final doc in result.documents) {
-                final recipe = Recipe.fromJson(doc.data);
-                merged[recipe.id] = recipe;
-              }
-            } catch (_) {
-              // Continue when array-field filtering is unavailable.
-            }
-
-            if (merged.length >= limit) {
-              return;
-            }
-          }
-        }
-
-        for (final doc in result.documents) {
-        await collectEnglishKeywordMatches();
-          final recipe = Recipe.fromJson(doc.data);
-          merged[recipe.id] = recipe;
-        }
-      } catch (_) {
-        // Continue with fallback fields when an index is not available yet.
+        return fallbackResult.documents.map((d) => Recipe.fromJson(d.data)).toList();
+      } catch (e) {
+        return const [];
       }
     }
-
-    Future<void> collectEnglishKeywordMatches() async {
-      final normalizedLower = normalized.toLowerCase();
-      final terms = <String>{
-        normalizedLower,
-        ...normalizedLower
-            .split(RegExp(r'\s+'))
-            .map((part) => part.trim())
-            .where((part) => part.isNotEmpty),
-      };
-
-      for (final term in terms) {
-        try {
-          final result = await _db.listDocuments(
-            databaseId: AppConfig.databaseId,
-            collectionId: AppConfig.recipesCollection,
-            queries: [
-              Query.equal('english_keywords', term),
-              Query.limit(limit),
-            ],
-          );
-
-          for (final doc in result.documents) {
-            final recipe = Recipe.fromJson(doc.data);
-            merged[recipe.id] = recipe;
-          }
-        } catch (_) {
-          // Continue when array-field filtering is unavailable.
-        }
-
-        if (merged.length >= limit) {
-          return;
-        }
-      }
-    }
-
-    await collectSearch('search_text');
-    await collectEnglishKeywordMatches();
-    await collectSearch('title');
-
-    return merged.values.take(limit).toList();
   }
 
   /// Trending = highest rated in the last 30 days.

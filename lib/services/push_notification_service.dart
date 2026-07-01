@@ -231,9 +231,7 @@ class PushNotificationService {
       return;
     }
 
-    final title =
-        message.notification?.title ??
-      (message.data['title'] ?? 'Амттай').toString().trim();
+    final title = message.notification?.title ?? (message.data['title'] ?? 'Amttai').toString().trim();
     final body =
       message.notification?.body ??
       (message.data['body'] ?? '').toString().trim();

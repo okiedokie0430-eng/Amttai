@@ -90,7 +90,7 @@ class AuthService {
       throw lastAppwriteError;
     }
 
-    throw Exception('Google нэвтрэлт баталгаажаагүй байна. Дахин оролдоно уу.');
+    throw Exception('Google login could not be verified. Please try again.');
   }
 
   // ── Phone / OTP Auth ────────────────────────────────────
@@ -277,4 +277,8 @@ class AuthService {
         normalizedMessage.contains('user closed') ||
         normalizedMessage.contains('aborted');
   }
+
+  /// Returns the currently persisted Appwrite session ID without making
+  /// any network calls. Useful for attaching the session to image requests.
+  Future<String?> getCurrentSessionId() => _readPersistedSessionId();
 }

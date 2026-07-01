@@ -1,0 +1,18 @@
+{
+  "name": "amttai-tts-automation",
+  "version": "1.0.0",
+  "description": "Admin Automation Tool for Edge TTS Pre-Fetch",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "msedge-tts": "^2.0.5",
+    "node-appwrite": "^12.0.0"
+  }
+}

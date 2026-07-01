@@ -1,8 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../core/theme/app_colors.dart';
+import 'appwrite_image.dart';
 
 class UserAvatar extends StatelessWidget {
   final String? photoUrl;
@@ -41,7 +41,8 @@ class UserAvatar extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: _buildAvatarContent(context),
           ),
-          IgnorePointer(
+          // V1.0: Premium/Free avatar ring hidden — restore for V1.1.
+          /* IgnorePointer(
             child: Image.asset(
               isPremium
                   ? 'assets/images/premium.png'
@@ -49,7 +50,7 @@ class UserAvatar extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
-          ),
+          ), */
         ],
       ),
     );
@@ -74,7 +75,7 @@ class UserAvatar extends StatelessWidget {
         );
       }
 
-      return CachedNetworkImage(
+      return AppwriteImage(
         imageUrl: normalized,
         fit: BoxFit.cover,
         placeholder: (_, __) => _buildInitialFallback(context),

@@ -102,7 +102,7 @@ class AuthProvider extends ChangeNotifier {
         }
 
         _error =
-            'Нэвтрэх сесс алдаатай байна. Апп-аа бүрэн хаагаад дахин нэвтэрнэ үү.';
+            'Session error. Please close the app completely and log in again.';
       } else {
         _error = message;
       }
@@ -131,9 +131,9 @@ class AuthProvider extends ChangeNotifier {
       _isLoggedIn = false;
 
       if (_isOAuthCancel(normalized)) {
-        _error = 'Google нэвтрэлт цуцлагдлаа.';
+        _error = 'Google sign-in was cancelled.';
       } else if (normalized.contains('nullnull')) {
-        _error = 'Google нэвтрэлт амжилтгүй боллоо. Дахин оролдоно уу.';
+        _error = 'Google sign-in failed. Please try again.';
       } else if (normalized.contains('missing_scopes') &&
           normalized.contains('[account]')) {
         try {
@@ -142,7 +142,7 @@ class AuthProvider extends ChangeNotifier {
           // Ignore logout failures when the session is already invalid.
         }
 
-        _error = 'Нэвтрэх сесс алдаатай байна. Дахин оролдоно уу.';
+        _error = 'Session error. Please try again.';
       } else {
         _error = message;
       }

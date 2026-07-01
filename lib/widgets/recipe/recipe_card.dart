@@ -1,10 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../models/recipe.dart';
 import '../../providers/favorites_provider.dart';
+import '../common/appwrite_image.dart';
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -38,36 +39,100 @@ class RecipeCard extends StatelessWidget {
           )
         : false;
 
+    final imageContent = recipe.imageUrl != null
+        ? AppwriteImage(
+            imageUrl: recipe.imageUrl!,
+            fit: BoxFit.cover,
+            memCacheHeight: imageMemCacheHeight,
+            filterQuality: imageFilterQuality,
+            fadeInDuration: Duration.zero,
+            fadeOutDuration: Duration.zero,
+            placeholder: (_, __) =>
+                Container(color: AppColors.surfaceVariant(context)),
+            errorWidget: (_, __, ___) => Container(
+              color: AppColors.surfaceVariant(context),
+              child: Icon(
+                Icons.restaurant_rounded,
+                color: AppColors.textTertiary(context),
+                size: 40,
+              ),
+            ),
+          )
+        : Container(
+            color: AppColors.surfaceVariant(context),
+            child: Icon(
+              Icons.restaurant_rounded,
+              color: AppColors.textTertiary(context),
+              size: 40,
+            ),
+          );
+
     final imageLayer = Material(
       type: MaterialType.transparency,
       child: RepaintBoundary(
-        child: recipe.imageUrl != null
-            ? CachedNetworkImage(
-                imageUrl: recipe.imageUrl!,
-                fit: BoxFit.cover,
-                memCacheHeight: imageMemCacheHeight,
-                filterQuality: imageFilterQuality,
-                fadeInDuration: Duration.zero,
-                fadeOutDuration: Duration.zero,
-                placeholder: (_, __) =>
-                    Container(color: AppColors.surfaceVariant(context)),
-                errorWidget: (_, __, ___) => Container(
-                  color: AppColors.surfaceVariant(context),
-                  child: Icon(
-                    Icons.restaurant_rounded,
-                    color: AppColors.textTertiary(context),
-                    size: 40,
-                  ),
-                ),
-              )
-            : Container(
-                color: AppColors.surfaceVariant(context),
-                child: Icon(
-                  Icons.restaurant_rounded,
-                  color: AppColors.textTertiary(context),
-                  size: 40,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 1. Sharp base image
+            imageContent,
+            
+            // 2. Pre-rendered soft-edge blur behind the title area.
+            //    Positioned with negative offsets extends the blurred image
+            //    BEYOND the card edges so the blur kernel has full pixel data
+            //    at borders — no fade-out at sides/bottom. The parent's
+            //    Clip.hardEdge hides the bleed. ShaderMask fades only the top.
+            Positioned(
+              left: -40,
+              right: -40,
+              top: 0,
+              bottom: -25,
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [0.0, 0.6, 0.82, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.transparent,
+                      Colors.white,
+                      Colors.white,
+                    ],
+                  ).createShader(bounds);
+                },
+                blendMode: BlendMode.dstIn,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 35.0, sigmaY: 20.0),
+                  child: imageContent,
                 ),
               ),
+            ),
+
+            // 3. Dark gradient scrim for text readability over the blur
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: isLandscape ? 110.0 : 150.0,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.4, 1.0],
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.1),
+                        Colors.black.withValues(alpha: 0.5),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
 
@@ -123,9 +188,8 @@ class RecipeCard extends StatelessWidget {
                               ),
                               child: Text(
                                 _getCategoryName(recipe.category),
-                                style: TextStyle(
+                                style: textTheme.labelSmall?.copyWith(
                                   color: Colors.white,
-                                  fontSize: isLandscape ? 10 : 12,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 0.5,
                                 ),
@@ -212,10 +276,9 @@ class RecipeCard extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            '${recipe.cookTimeMinutes} мин',
-                                            style: TextStyle(
+                                            '${recipe.cookTimeMinutes} min',
+                                            style: textTheme.labelSmall?.copyWith(
                                               color: Colors.white,
-                                              fontSize: isLandscape ? 11 : 13,
                                               fontWeight: FontWeight.w500,
                                               shadows: const [
                                                 Shadow(
@@ -244,9 +307,8 @@ class RecipeCard extends StatelessWidget {
                                           const SizedBox(width: 4),
                                           Text(
                                             recipe.difficulty.toUpperCase(),
-                                            style: TextStyle(
+                                            style: textTheme.labelSmall?.copyWith(
                                               color: Colors.white,
-                                              fontSize: isLandscape ? 11 : 13,
                                               fontWeight: FontWeight.w500,
                                               shadows: const [
                                                 Shadow(
@@ -263,7 +325,8 @@ class RecipeCard extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            if (recipe.isPremium) ...[
+                            // V1.0: PREMIUM badge hidden — restore for V1.1.
+                            /* if (recipe.isPremium) ...[
                               const SizedBox(width: 8),
                               Container(
                                 padding: EdgeInsets.symmetric(
@@ -295,7 +358,8 @@ class RecipeCard extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            ],
+                            ], // end if (recipe.isPremium)
+                            */
                           ],
                         ),
                       ),
@@ -310,27 +374,27 @@ class RecipeCard extends StatelessWidget {
   }
 
   String _getCategoryName(String categoryId) {
-    switch (categoryId) {
-      case 'traditional':
-        return 'Уламжлалт';
-      case 'main':
-        return 'Үндсэн хоол';
-      case 'soup':
-        return 'Шөл';
-      case 'drink':
-        return 'Уух зүйл';
-      case 'dessert':
-        return 'Амттан';
-      case 'snack':
-        return 'Зууш';
-      case 'salad':
-        return 'Салад';
-      case 'breakfast':
-        return 'Өглөөний цай';
-      case 'pastry':
-        return 'Нарийн боов';
-      default:
-        return categoryId.toUpperCase();
-    }
+  switch (categoryId) {
+    case 'traditional':
+      return 'Traditional';
+    case 'main':
+      return 'Main Course';
+    case 'soup':
+      return 'Soup';
+    case 'drink':
+      return 'Drink';
+    case 'dessert':
+      return 'Dessert';
+    case 'snack':
+      return 'Appetizer';
+    case 'salad':
+      return 'Salad';
+    case 'breakfast':
+      return 'Breakfast';
+    case 'pastry':
+      return 'Pastry';
+    default:
+      return categoryId.toUpperCase();
   }
+}
 }

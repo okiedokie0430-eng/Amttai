@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/recipe.dart';
@@ -15,9 +15,10 @@ import '../../screens/profile/profile_screen.dart';
 import '../../screens/recipe/recipe_detail_screen.dart';
 import '../../screens/recipe/step_by_step_screen.dart';
 import '../../screens/search/search_screen.dart';
+import '../../screens/settings/about_screen.dart';
 import '../../screens/settings/account_settings_screen.dart';
 import '../../screens/settings/settings_screen.dart';
-import '../../screens/splash/splash_screen.dart';
+import '../../screens/splash/cinematic_splash_screen.dart';
 import '../../screens/support/support_chat_screen.dart';
 import '../../screens/welcome/welcome_screen.dart';
 
@@ -57,31 +58,63 @@ class AppRouter {
     );
   }
 
+  static CustomTransitionPage _fadeZoom(Widget child, GoRouterState state) {
+    return CustomTransitionPage(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 1200),
+      reverseTransitionDuration: const Duration(milliseconds: 600),
+      transitionsBuilder: (_, animation, __, child) {
+        final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final scale = Tween<double>(begin: 1.08, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+        );
+        return FadeTransition(
+          opacity: fade,
+          child: ScaleTransition(scale: scale, child: child),
+        );
+      },
+    );
+  }
+
+  /// Faster fade + zoom for screens where the background should appear immediately.
+  static CustomTransitionPage _fastFadeZoom(Widget child, GoRouterState state) {
+    return CustomTransitionPage(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 800),
+      reverseTransitionDuration: const Duration(milliseconds: 400),
+      transitionsBuilder: (_, animation, __, child) {
+        final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final scale = Tween<double>(begin: 1.05, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+        );
+        return FadeTransition(
+          opacity: fade,
+          child: ScaleTransition(scale: scale, child: child),
+        );
+      },
+    );
+  }
+
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',
-        pageBuilder: (_, state) => _fade(const SplashScreen(), state),
+        pageBuilder: (_, state) => _fade(const CinematicSplashScreen(), state),
       ),
       GoRoute(
         path: '/welcome',
         pageBuilder: (context, state) {
           final shouldAnimate = state.uri.queryParameters['animate'] == '1';
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: WelcomeScreen(shouldAnimate: shouldAnimate),
-            transitionDuration: const Duration(milliseconds: 300),
-            transitionsBuilder: (_, animation, __, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          );
+          return _fadeZoom(WelcomeScreen(shouldAnimate: shouldAnimate), state);
         },
       ),
       GoRoute(
         path: '/login',
-        pageBuilder: (_, state) => _fade(const LoginScreen(), state),
+        pageBuilder: (_, state) => _fastFadeZoom(const LoginScreen(), state),
       ),
       GoRoute(
         path: '/register',
@@ -104,7 +137,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/home',
-                pageBuilder: (_, state) => _fade(const HomeScreen(), state),
+                pageBuilder: (_, state) => _fadeZoom(const HomeScreen(), state),
               ),
             ],
           ),
@@ -177,15 +210,25 @@ class AppRouter {
       ),
       GoRoute(
         path: '/settings',
-        pageBuilder: (_, state) => _slide(const SettingsScreen(), state),
+        pageBuilder: (_, state) =>
+            CupertinoPage(key: state.pageKey, child: const SettingsScreen()),
       ),
       GoRoute(
         path: '/account-settings',
-        pageBuilder: (_, state) => _slide(const AccountSettingsScreen(), state),
+        pageBuilder: (_, state) => CupertinoPage(
+          key: state.pageKey,
+          child: const AccountSettingsScreen(),
+        ),
       ),
       GoRoute(
         path: '/support',
-        pageBuilder: (_, state) => _slide(const SupportChatScreen(), state),
+        pageBuilder: (_, state) =>
+            CupertinoPage(key: state.pageKey, child: const SupportChatScreen()),
+      ),
+      GoRoute(
+        path: '/about',
+        pageBuilder: (_, state) =>
+            CupertinoPage(key: state.pageKey, child: const AboutScreen()),
       ),
       GoRoute(
         path: '/profile-edit',
@@ -194,4 +237,3 @@ class AppRouter {
     ],
   );
 }
-

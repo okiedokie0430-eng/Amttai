@@ -12,14 +12,14 @@ class Category {
 
   /// Hard-coded default categories for MVP.
   static const List<Category> defaults = [
-    Category(id: 'soup', name: 'Шөл'),
-    Category(id: 'main', name: 'Үндсэн хоол'),
-    Category(id: 'salad', name: 'Салат'),
-    Category(id: 'bakery', name: 'Нарийн боов'),
-    Category(id: 'dessert', name: 'Амттан'),
-    Category(id: 'drink', name: 'Ундаа'),
-    Category(id: 'breakfast', name: 'Өглөөний хоол'),
-    Category(id: 'snack', name: 'Зууш'),
-    Category(id: 'traditional', name: 'Уламжлалт'),
+    Category(id: 'soup', name: 'Soup'),
+    Category(id: 'main', name: 'Main Course'),
+    Category(id: 'salad', name: 'Salad'),
+    Category(id: 'bakery', name: 'Bakery'),
+    Category(id: 'dessert', name: 'Dessert'),
+    Category(id: 'drink', name: 'Drinks'),
+    Category(id: 'breakfast', name: 'Breakfast'),
+    Category(id: 'snack', name: 'Snack'),
+    Category(id: 'traditional', name: 'Traditional'),
   ];
 }

@@ -20,39 +20,39 @@ class IngredientItem {
 // Data
 const List<IngredientItem> kAllIngredients = [
   // Fruits
-  IngredientItem(id: '1', name: 'Алим', category: 'Жимс', bgColor: Color(0xFFFF7A7A), imageEmoji: '🍎'),
-  IngredientItem(id: '2', name: 'Авокадо', category: 'Жимс', bgColor: Color(0xFFC4E8A5), imageEmoji: '🥑'),
-  IngredientItem(id: '3', name: 'Гадил', category: 'Жимс', bgColor: Color(0xFFFFF4B3), imageEmoji: '🍌'),
-  IngredientItem(id: '4', name: 'Интоор', category: 'Жимс', bgColor: Color(0xFFFFB8C6), imageEmoji: '🍒'),
-  IngredientItem(id: '5', name: 'Чавга', category: 'Жимс', bgColor: Color(0xFFE8BD8C), imageEmoji: '🌰'),
-  IngredientItem(id: '6', name: 'Шинэхэн хар нэрс', category: 'Жимс', bgColor: Color(0xFFD6EEF8), imageEmoji: '🫐'),
-  IngredientItem(id: '7', name: 'Нэрс', category: 'Жимс', bgColor: Color(0xFFB5D4E6), imageEmoji: '🫐'),
-  IngredientItem(id: '8', name: 'Цангис', category: 'Жимс', bgColor: Color(0xFFFF6B6B), imageEmoji: '🍓'),
-  IngredientItem(id: '9', name: 'Холимог', category: 'Жимс', bgColor: Color(0xFFFFC2D1), imageEmoji: '🍇'),
+  IngredientItem(id: '1', name: 'Apple', category: 'Fruits', bgColor: Color(0xFFFF7A7A), imageEmoji: '🍎'),
+  IngredientItem(id: '2', name: 'Avocado', category: 'Fruits', bgColor: Color(0xFFC4E8A5), imageEmoji: '🥑'),
+  IngredientItem(id: '3', name: 'Banana', category: 'Fruits', bgColor: Color(0xFFFFF4B3), imageEmoji: '🍌'),
+  IngredientItem(id: '4', name: 'Cherry', category: 'Fruits', bgColor: Color(0xFFFFB8C6), imageEmoji: '🍒'),
+  IngredientItem(id: '5', name: 'Chestnut', category: 'Fruits', bgColor: Color(0xFFE8BD8C), imageEmoji: '🌰'),
+  IngredientItem(id: '6', name: 'Blueberry', category: 'Fruits', bgColor: Color(0xFFD6EEF8), imageEmoji: '🫐'),
+  IngredientItem(id: '7', name: 'Currant', category: 'Fruits', bgColor: Color(0xFFB5D4E6), imageEmoji: '🫐'),
+  IngredientItem(id: '8', name: 'Strawberry', category: 'Fruits', bgColor: Color(0xFFFF6B6B), imageEmoji: '🍓'),
+  IngredientItem(id: '9', name: 'Mixed Fruit', category: 'Fruits', bgColor: Color(0xFFFFC2D1), imageEmoji: '🍇'),
   
   // Vegetables
-  IngredientItem(id: '10', name: 'Лууван', category: 'Ногоо', bgColor: Color(0xFFFFB347), imageEmoji: '🥕'),
-  IngredientItem(id: '11', name: 'Брокколи', category: 'Ногоо', bgColor: Color(0xFFB8E994), imageEmoji: '🥦'),
-  IngredientItem(id: '12', name: 'Улаан лооль', category: 'Ногоо', bgColor: Color(0xFFFF8A8A), imageEmoji: '🍅'),
-  IngredientItem(id: '13', name: 'Сармис', category: 'Ногоо', bgColor: Color(0xFFFFF2CC), imageEmoji: '🧄'),
-  IngredientItem(id: '14', name: 'Сонгино', category: 'Ногоо', bgColor: Color(0xFFE6E6FA), imageEmoji: '🧅'),
+  IngredientItem(id: '10', name: 'Carrot', category: 'Vegetables', bgColor: Color(0xFFFFB347), imageEmoji: '🥕'),
+  IngredientItem(id: '11', name: 'Broccoli', category: 'Vegetables', bgColor: Color(0xFFB8E994), imageEmoji: '🥦'),
+  IngredientItem(id: '12', name: 'Tomato', category: 'Vegetables', bgColor: Color(0xFFFF8A8A), imageEmoji: '🍅'),
+  IngredientItem(id: '13', name: 'Garlic', category: 'Vegetables', bgColor: Color(0xFFFFF2CC), imageEmoji: '🧄'),
+  IngredientItem(id: '14', name: 'Onion', category: 'Vegetables', bgColor: Color(0xFFE6E6FA), imageEmoji: '🧅'),
 
   // Dairy & Eggs
-  IngredientItem(id: '15', name: 'Сүү', category: 'Сүү & Өндөг', bgColor: Color(0xFFDFF9FB), imageEmoji: '🥛'),
-  IngredientItem(id: '16', name: 'Өндөг', category: 'Сүү & Өндөг', bgColor: Color(0xFFFEEAA0), imageEmoji: '🥚'),
-  IngredientItem(id: '17', name: 'Бяслаг', category: 'Сүү & Өндөг', bgColor: Color(0xFFF9CA24), imageEmoji: '🧀'),
-  IngredientItem(id: '18', name: 'Цөцгийн тос', category: 'Сүү & Өндөг', bgColor: Color(0xFFF6E58D), imageEmoji: '🧈'),
+  IngredientItem(id: '15', name: 'Milk', category: 'Dairy & Eggs', bgColor: Color(0xFFDFF9FB), imageEmoji: '🥛'),
+  IngredientItem(id: '16', name: 'Egg', category: 'Dairy & Eggs', bgColor: Color(0xFFFEEAA0), imageEmoji: '🥚'),
+  IngredientItem(id: '17', name: 'Cheese', category: 'Dairy & Eggs', bgColor: Color(0xFFF9CA24), imageEmoji: '🧀'),
+  IngredientItem(id: '18', name: 'Butter', category: 'Dairy & Eggs', bgColor: Color(0xFFF6E58D), imageEmoji: '🧈'),
 
   // Meat
-  IngredientItem(id: '19', name: 'Үхрийн мах', category: 'Мах', bgColor: Color(0xFFFF7979), imageEmoji: '🥩'),
-  IngredientItem(id: '20', name: 'Тахианы мах', category: 'Мах', bgColor: Color(0xFFFFBE76), imageEmoji: '🍗'),
-  IngredientItem(id: '21', name: 'Гахайн мах', category: 'Мах', bgColor: Color(0xFFFFA502), imageEmoji: '🍖'),
+  IngredientItem(id: '19', name: 'Beef', category: 'Meat', bgColor: Color(0xFFFF7979), imageEmoji: '🥩'),
+  IngredientItem(id: '20', name: 'Chicken', category: 'Meat', bgColor: Color(0xFFFFBE76), imageEmoji: '🍗'),
+  IngredientItem(id: '21', name: 'Pork', category: 'Meat', bgColor: Color(0xFFFFA502), imageEmoji: '🍖'),
   
   // Pantry
-  IngredientItem(id: '22', name: 'Гурил', category: 'Хуурай хүнс', bgColor: Color(0xFFF1F2F6), imageEmoji: '🌾'),
-  IngredientItem(id: '23', name: 'Элсэн чихэр', category: 'Хуурай хүнс', bgColor: Color(0xFFDFE4EA), imageEmoji: '🧂'),
-  IngredientItem(id: '24', name: 'Давс', category: 'Хуурай хүнс', bgColor: Color(0xFFCED6E0), imageEmoji: '🧂'),
-  IngredientItem(id: '25', name: 'Оливын тос', category: 'Хуурай хүнс', bgColor: Color(0xFFECCC68), imageEmoji: '🫒'),
+  IngredientItem(id: '22', name: 'Flour', category: 'Pantry', bgColor: Color(0xFFF1F2F6), imageEmoji: '🌾'),
+  IngredientItem(id: '23', name: 'Sugar', category: 'Pantry', bgColor: Color(0xFFDFE4EA), imageEmoji: '🧂'),
+  IngredientItem(id: '24', name: 'Salt', category: 'Pantry', bgColor: Color(0xFFCED6E0), imageEmoji: '🧂'),
+  IngredientItem(id: '25', name: 'Olive Oil', category: 'Pantry', bgColor: Color(0xFFECCC68), imageEmoji: '🫒'),
 ];
 
 class AddIngredientScreen extends StatefulWidget {
@@ -63,8 +63,8 @@ class AddIngredientScreen extends StatefulWidget {
 }
 
 class _AddIngredientScreenState extends State<AddIngredientScreen> {
-  final List<String> _categories = ['Жимс', 'Ногоо', 'Сүү & Өндөг', 'Мах', 'Хуурай хүнс'];
-  String _selectedCategory = 'Жимс';
+  final List<String> _categories = ['Fruits', 'Vegetables', 'Dairy & Eggs', 'Meat', 'Pantry'];
+  String _selectedCategory = 'Fruits';
   final Set<String> _selectedIds = {};
 
   late TextEditingController _searchController;
@@ -128,7 +128,7 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Орц нэмэх',
+                    'Add Ingredient',
                     style: TextStyle(
                       color: textPColor,
                       fontSize: 24,
@@ -154,7 +154,7 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
                   style: TextStyle(color: textPColor),
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
-                    hintText: 'Орц хайж нэмэх...',
+                    hintText: 'Search ingredients...',
                     hintStyle: TextStyle(color: textPColor.withValues(alpha: 0.4), fontSize: 16),
                     prefixIcon: Icon(Icons.search, color: textPColor.withValues(alpha: 0.4)),
                     border: InputBorder.none,
@@ -335,7 +335,7 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
                     elevation: 0,
                   ),
                   child: Text(
-                    isNoneSelected ? 'ЦУЦЛАХ' : 'БАТЛАХ (${_selectedIds.length})',
+                    isNoneSelected ? 'CANCEL' : 'ADD (${_selectedIds.length})',
                     style: TextStyle(
                       color: isNoneSelected ? textPColor : Colors.white,
                       fontWeight: FontWeight.w900,

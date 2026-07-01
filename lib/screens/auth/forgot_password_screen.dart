@@ -65,7 +65,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 24),
               // Heading
               Text(
-                'Нууц үг сэргээх',
+                'Reset Password',
                 style: textTheme.headlineLarge?.copyWith(
                   color: textPrimary,
                   fontWeight: FontWeight.w900,
@@ -75,7 +75,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 16),
               // Subtitle
               Text(
-                'И-мэйл хаягаа оруулна уу. Бид танд нууц үгээ шинэчлэх холбоос илгээх болно.',
+                'Enter your email address. We will send you a link to reset your password.',
                 style: textTheme.titleMedium?.copyWith(
                   color: textSecondary,
                   height: 1.4,
@@ -86,7 +86,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
               // Email Label + Field
               Text(
-                'И-мэйл',
+                'Email',
                 style: textTheme.titleMedium?.copyWith(
                   color: textSecondary,
                   fontWeight: FontWeight.w700,
@@ -111,7 +111,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Холбоос илгээгдлээ')),
+                      const SnackBar(content: Text('Reset link sent')),   
                     );
                     context.pop();
                   },
@@ -124,7 +124,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                   child: const Text(
-                    'ИЛГЭЭХ', // SEND!
+                    'SEND',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,

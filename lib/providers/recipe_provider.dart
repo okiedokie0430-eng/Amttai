@@ -1,8 +1,8 @@
 ﻿import 'package:flutter/foundation.dart';
 
-import '../data/dummy_data.dart';
 import '../models/recipe.dart';
 import '../services/recipe_service.dart';
+import '../services/recommendation_service.dart';
 
 class RecipeProvider extends ChangeNotifier {
   final RecipeService _recipeService = RecipeService();
@@ -25,17 +25,14 @@ class RecipeProvider extends ChangeNotifier {
     _setLoading(true);
     _activeCategory = category;
     try {
-      _recipes = await _recipeService.getRecipes(category: category);
-      if (_recipes.isEmpty) throw Exception('empty');
+      var fetched = await _recipeService.getRecipes(category: category);
+      if (fetched.isEmpty) throw Exception('empty');
+      // Apply Native Recommendation Matrix Sort
+      _recipes = await RecommendationService.rankRecipes(fetched);
       _error = null;
-    } catch (_) {
-      // Fallback to dummy data
-      if (category != null) {
-        _recipes = DummyData.byCategory(category);
-      } else {
-        _recipes = DummyData.recipes;
-      }
-      _error = null;
+    } catch (e) {
+      _recipes = [];
+      _error = e.toString();
     } finally {
       _setLoading(false);
     }
@@ -46,8 +43,8 @@ class RecipeProvider extends ChangeNotifier {
       _trending = await _recipeService.getTrending();
       if (_trending.isEmpty) throw Exception('empty');
       notifyListeners();
-    } catch (_) {
-      _trending = DummyData.trending;
+    } catch (e) {
+      _trending = [];
       notifyListeners();
     }
   }
@@ -63,9 +60,9 @@ class RecipeProvider extends ChangeNotifier {
       _searchResults = await _recipeService.searchRecipes(query);
       if (_searchResults.isEmpty) throw Exception('empty');
       _error = null;
-    } catch (_) {
-      _searchResults = DummyData.search(query);
-      _error = null;
+    } catch (e) {
+      _searchResults = [];
+      _error = e.toString();
     } finally {
       _setLoading(false);
     }
@@ -78,12 +75,15 @@ class RecipeProvider extends ChangeNotifier {
 
   Future<Recipe> getRecipeDetail(String id) async {
     try {
-      return await _recipeService.getRecipe(id);
-    } catch (_) {
-      return DummyData.recipes.firstWhere(
-        (r) => r.id == id,
-        orElse: () => DummyData.recipes.first,
-      );
+      final recipe = await _recipeService.getRecipe(id);
+      // Track View Event for Recommendations
+      RecommendationService.onRecipeViewed([
+        recipe.category.toLowerCase(),
+        recipe.difficulty.toLowerCase(),
+      ]);
+      return recipe;
+    } catch (e) {
+      rethrow;
     }
   }
 

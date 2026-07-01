@@ -86,8 +86,8 @@ class AppDrawer extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  // Premium / Free badge next to name
+                                  // V1.0: FREE/PREMIUM badge hidden — restore for V1.1.
+                                  /* const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
@@ -113,7 +113,7 @@ class AppDrawer extends StatelessWidget {
                                         fontSize: 10,
                                       ),
                                     ),
-                                  ),
+                                  ), */
                                 ],
                               ),
                               const SizedBox(height: 2),
@@ -142,7 +142,8 @@ class AppDrawer extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // ── Menu items ──
-                _tile(
+                // V1.0: Premium navigation tile hidden — restore for V1.1.
+                /* _tile(
                   context,
                   Icons.workspace_premium_outlined,
                   S.premiumTitle,
@@ -152,9 +153,7 @@ class AppDrawer extends StatelessWidget {
                     context.push('/premium');
                   },
                 ),
-
-                const SizedBox(height: 4),
-
+                const SizedBox(height: 4), */
                 _tile(
                   context,
                   themeProvider.isDark

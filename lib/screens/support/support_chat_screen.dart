@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -103,7 +103,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         // Show a subtle error indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Мессеж илгээхэд алдаа гарлаа. Дахин оролдоно уу.'),
+            content: const Text('Could not send message. Please try again.'),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
@@ -159,7 +159,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                           AppColors.textSecondary(context))),
                               const SizedBox(height: 8),
                               Text(
-                                  'Доорх талбарт мессежээ бичнэ үү',
+                                  'Write your message in the field below',
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodySmall?.copyWith(
                                       color:

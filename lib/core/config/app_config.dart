@@ -40,9 +40,11 @@ class AppConfig {
   static const String paymentScreenshotsBucket = 'payment_screenshots';
 
   // ── Payment ───────────────────────────────────────────────
-  static const String bankName = 'Голомт банк';
+  static const String bankName = 'Golomt Bank';
   static const String bankAccountNumber = '480015002905262908';
   static const String bankAccountHolder = 'Erdenee Bayarkhuu';
+  static const String socialPayDeeplinkTemplate =
+      'socialpay-payment://transfer?to={to}&amount={amount}&description={description}&txCode={txCode}';
 
   // ── Firebase Push (FCM) ──────────────────────────────────
   static const bool pushEnabled = bool.fromEnvironment(
@@ -99,7 +101,7 @@ class AppConfig {
   static const int plan6MonthPrice = 36000;
 
   // ── App Info ──────────────────────────────────────────────
-  static const String appName = 'Амттай';
+  static const String appName = 'Amttai';
   static const String appVersion = '1.0.0';
   static const String supportEmail = 'support@amttai.com';
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_dimens.dart';
-import '../../core/theme/app_colors.dart';
+// V1.0: Imports unused while PremiumBadge is hidden — restore for V1.1.
+// import '../../core/constants/app_dimens.dart';
+// import '../../core/theme/app_colors.dart';
 
 /// A small badge that signals premium-only content.
 class PremiumBadge extends StatelessWidget {
@@ -11,6 +12,9 @@ class PremiumBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // V1.0: PremiumBadge hidden for Google Play review — restore for V1.1.
+    return const SizedBox.shrink();
+    /* V1.0 — original badge widget preserved below
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -33,5 +37,6 @@ class PremiumBadge extends StatelessWidget {
         ],
       ),
     );
+    */
   }
 }

@@ -1,4 +1,4 @@
-/// All user-facing strings in Mongolian.
+/// All user-facing strings in English.
 ///
 /// Centralised here so the entire app stays consistent and
 /// future localisation is trivial (swap this file).
@@ -6,159 +6,159 @@ class S {
   S._();
 
   // ── General ───────────────────────────────────────────────
-  static const String appName = 'Амттай';
-  static const String loading = 'Уншиж байна...';
-  static const String retry = 'Дахин оролдох';
-  static const String cancel = 'Цуцлах';
-  static const String save = 'Хадгалах';
-  static const String done = 'Болсон';
-  static const String ok = 'За';
-  static const String yes = 'Тийм';
-  static const String no = 'Үгүй';
-  static const String error = 'Алдаа';
-  static const String success = 'Амжилттай';
-  static const String close = 'Хаах';
-  static const String next = 'Дараах';
-  static const String back = 'Буцах';
-  static const String seeAll = 'Бүгдийг харах';
+  static const String appName = 'Amttai';
+  static const String loading = 'Loading...';
+  static const String retry = 'Retry';
+  static const String cancel = 'Cancel';
+  static const String save = 'Save';
+  static const String done = 'Done';
+  static const String ok = 'OK';
+  static const String yes = 'Yes';
+  static const String no = 'No';
+  static const String error = 'Error';
+  static const String success = 'Success';
+  static const String close = 'Close';
+  static const String next = 'Next';
+  static const String back = 'Back';
+  static const String seeAll = 'See All';
 
   // ── Auth ──────────────────────────────────────────────────
-  static const String login = 'Нэвтрэх';
-  static const String register = 'Бүртгүүлэх';
-  static const String logout = 'Гарах';
-  static const String email = 'И-мэйл';
-  static const String phone = 'Утасны дугаар';
-  static const String password = 'Нууц үг';
-  static const String confirmPassword = 'Нууц үг давтах';
-  static const String forgotPassword = 'Нууц үгээ мартсан?';
-  static const String otpTitle = 'Баталгаажуулах код';
-  static const String otpSubtitle = 'Таны утсанд илгээсэн 6 оронтой кодыг оруулна уу';
-  static const String sendCode = 'Код илгээх';
-  static const String verifyCode = 'Баталгаажуулах';
-  static const String nameHint = 'Нэр';
-  static const String alreadyHaveAccount = 'Бүртгэлтэй юу? ';
-  static const String dontHaveAccount = 'Бүртгэл байхгүй юу? ';
+  static const String login = 'Login';
+  static const String register = 'Register';
+  static const String logout = 'Logout';
+  static const String email = 'Email';
+  static const String phone = 'Phone Number';
+  static const String password = 'Password';
+  static const String confirmPassword = 'Confirm Password';
+  static const String forgotPassword = 'Forgot Password?';
+  static const String otpTitle = 'Verification Code';
+  static const String otpSubtitle = 'Enter the 6-digit code sent to your phone';
+  static const String sendCode = 'Send Code';
+  static const String verifyCode = 'Verify';
+  static const String nameHint = 'Name';
+  static const String alreadyHaveAccount = 'Already have an account? ';
+  static const String dontHaveAccount = 'Don\'t have an account? ';
 
   // ── Bottom Nav ────────────────────────────────────────────
-  static const String navHome = 'Нүүр';
-  static const String navSearch = 'Хайх';
-  static const String navCart = 'Сагс';
-  static const String navFavorites = 'Хадгалсан';
-  static const String navProfile = 'Профайл';
+  static const String navHome = 'Home';
+  static const String navSearch = 'Search';
+  static const String navCart = 'Cart';
+  static const String navFavorites = 'Saved';
+  static const String navProfile = 'Profile';
 
   // ── Grocery Cart ──────────────────────────────────────────
-  static const String cartTitle = 'Сагс';
-  static const String cartEmpty = 'Сагс хоосон байна';
-  static const String cartEmptyHint = 'Жорын орцнуудыг сагсанд нэмээрэй';
-  static const String cartAddAll = 'Бүгдийг нэмэх';
-  static const String cartClearAll = 'Бүгдийг устгах';
-  static const String cartItemCount = 'зүйл';
+  static const String cartTitle = 'Cart';
+  static const String cartEmpty = 'Your cart is empty';
+  static const String cartEmptyHint = 'Add recipe ingredients to your cart';
+  static const String cartAddAll = 'Add All';
+  static const String cartClearAll = 'Clear All';
+  static const String cartItemCount = 'items';
 
   // ── Account / Profile Sections ────────────────────────────
-  static const String account = 'Бүртгэл';
-  static const String subscription = 'Эрх';
-  static const String freePlan = 'Үнэгүй';
-  static const String appPreferences = 'Апп тохиргоо';
-  static const String darkMode = 'Харанхуй горим';
-  static const String inviteFriends = 'Найзуудаа урих';
-  static const String leaveFeedback = 'Санал хүсэлт';
-  static const String support = 'Тусламж';
+  static const String account = 'Account';
+  static const String subscription = 'Subscription';
+  static const String freePlan = 'Free';
+  static const String appPreferences = 'App Preferences';
+  static const String darkMode = 'Dark Mode';
+  static const String inviteFriends = 'Invite Friends';
+  static const String leaveFeedback = 'Feedback';
+  static const String support = 'Help';
 
   // ── Home ──────────────────────────────────────────────────
-  static const String greeting = 'Сайн байна уу! 👋';
-  static const String whatToCook = 'Өнөөдөр юу хоолой вэ?';
-  static const String trending = 'Трэнд';
-  static const String categories = 'Ангилал';
-  static const String recommended = 'Санал болгох';
-  static const String newRecipes = 'Шинэ жорууд';
+  static const String greeting = 'Hello! 👋';
+  static const String whatToCook = 'What would you like to cook today?';
+  static const String trending = 'Trending';
+  static const String categories = 'Categories';
+  static const String recommended = 'Recommended';
+  static const String newRecipes = 'New Recipes';
 
   // ── Search ────────────────────────────────────────────────
-  static const String searchHint = 'Жор хайх...';
-  static const String noResults = 'Илэрц олдсонгүй';
-  static const String recentSearches = 'Сүүлд хайсан';
+  static const String searchHint = 'Search recipes...';
+  static const String noResults = 'No results found';
+  static const String recentSearches = 'Recent Searches';
 
   // ── Recipe Detail ─────────────────────────────────────────
-  static const String ingredients = 'Орц';
-  static const String steps = 'Алхам';
-  static const String nutrition = 'Тэжээллэг чанар';
-  static const String reviews = 'Сэтгэгдэл';
-  static const String servings = 'Хүний тоо';
-  static const String prepTime = 'Бэлтгэх';
-  static const String cookTime = 'Болгох';
-  static const String difficulty = 'Түвшин';
-  static const String difficultyEasy = 'Амархан';
-  static const String difficultyMedium = 'Дунд';
-  static const String difficultyHard = 'Хэцүү';
-  static const String premiumRecipe = 'Премиум жор';
-  static const String watchVideo = 'Видео үзэх';
-  static const String addToFavorites = 'Хадгалах';
-  static const String removeFromFavorites = 'Хадгалсанаас хасах';
-  static const String writeReview = 'Сэтгэгдэл бичих';
-  static const String minuteShort = 'мин';
+  static const String ingredients = 'Ingredients';
+  static const String steps = 'Steps';
+  static const String nutrition = 'Nutrition';
+  static const String reviews = 'Reviews';
+  static const String servings = 'Servings';
+  static const String prepTime = 'Prep Time';
+  static const String cookTime = 'Cook Time';
+  static const String difficulty = 'Difficulty';
+  static const String difficultyEasy = 'Easy';
+  static const String difficultyMedium = 'Medium';
+  static const String difficultyHard = 'Hard';
+  static const String premiumRecipe = 'Premium Recipe';
+  static const String watchVideo = 'Watch Video';
+  static const String addToFavorites = 'Save';
+  static const String removeFromFavorites = 'Remove from Saved';
+  static const String writeReview = 'Write a Review';
+  static const String minuteShort = 'min';
 
   // ── Favorites ─────────────────────────────────────────────
-  static const String favoritesTitle = 'Хадгалсан жорууд';
-  static const String favoritesEmpty = 'Танд хадгалсан жор байхгүй байна';
-  static const String favoritesEmptyHint = 'Дуртай жоруудаа зүрхэн дүрс дээр дарж хадгалаарай';
+  static const String favoritesTitle = 'Saved Recipes';
+  static const String favoritesEmpty = 'You have no saved recipes';
+  static const String favoritesEmptyHint = 'Tap the heart icon to save your favorite recipes';
 
   // ── Profile ───────────────────────────────────────────────
-  static const String profileTitle = 'Профайл';
-  static const String editProfile = 'Засах';
-  static const String premiumStatus = 'Премиум статус';
-  static const String activePremium = 'Идэвхтэй';
-  static const String expiredPremium = 'Дууссан';
-  static const String noPremium = 'Премиум биш';
-  static const String totalFavorites = 'Хадгалсан';
-  static const String memberSince = 'Бүртгүүлсэн';
-  static const String settings = 'Тохиргоо';
-  static const String customerService = 'Хэрэглэгчийн үйлчилгээ';
+  static const String profileTitle = 'Profile';
+  static const String editProfile = 'Edit';
+  static const String premiumStatus = 'Premium Status';
+  static const String activePremium = 'Active';
+  static const String expiredPremium = 'Expired';
+  static const String noPremium = 'Not Premium';
+  static const String totalFavorites = 'Saved';
+  static const String memberSince = 'Member Since';
+  static const String settings = 'Settings';
+  static const String customerService = 'Customer Service';
 
   // ── Premium / Payment ─────────────────────────────────────
-  static const String premiumTitle = 'Премиум эрх';
+  static const String premiumTitle = 'Premium Access';
   static const String premiumSubtitle =
-      'Бүх жор, видео хичээлүүдэд хязгааргүй хандаарай';
-  static const String plan1Month = '1 Сар';
-  static const String plan3Month = '3 Сар';
-  static const String plan6Month = '6 Сар';
-  static const String selectPlan = 'Багц сонгох';
-  static const String paymentInstructions = 'Төлбөрийн заавар';
-  static const String paymentStep1 = '1. Доорх дансанд шилжүүлэг хийнэ үү';
-  static const String paymentStep2 = '2. Гүйлгээний утга дээр кодоо бичнэ үү';
-  static const String paymentStep3 = '3. Гүйлгээний дугаараа оруулна уу';
-  static const String transactionCode = 'Гүйлгээний код';
-  static const String transactionId = 'Гүйлгээний дугаар';
-  static const String transactionIdHint = 'Банкны гүйлгээний дугаар';
-  static const String submitPayment = 'Төлбөр илгээх';
-  static const String paymentPending = 'Баталгаажуулж байна...';
-  static const String paymentSuccess = 'Төлбөр амжилттай!';
-  static const String paymentFailed = 'Төлбөр амжилтгүй';
-  static const String copyCode = 'Код хуулах';
-  static const String copied = 'Хуулагдсан!';
+      'Get unlimited access to all recipes and video tutorials';
+  static const String plan1Month = '1 Month';
+  static const String plan3Month = '3 Months';
+  static const String plan6Month = '6 Months';
+  static const String selectPlan = 'Select Plan';
+  static const String paymentInstructions = 'Payment Instructions';
+  static const String paymentStep1 = '1. Transfer to the account below';
+  static const String paymentStep2 = '2. Write your code in the transaction note';
+  static const String paymentStep3 = '3. Enter your transaction number';
+  static const String transactionCode = 'Transaction Code';
+  static const String transactionId = 'Transaction ID';
+  static const String transactionIdHint = 'Bank transaction number';
+  static const String submitPayment = 'Submit Payment';
+  static const String paymentPending = 'Verifying...';
+  static const String paymentSuccess = 'Payment Successful!';
+  static const String paymentFailed = 'Payment Failed';
+  static const String copyCode = 'Copy Code';
+  static const String copied = 'Copied!';
 
   // ── Settings ──────────────────────────────────────────────
-  static const String settingsTitle = 'Тохиргоо';
-  static const String notifications = 'Мэдэгдэл';
-  static const String clearCache = 'Кэш цэвэрлэх';
-  static const String about = 'Тухай';
-  static const String version = 'Хувилбар';
-  static const String privacyPolicy = 'Нууцлалын бодлого';
-  static const String termsOfService = 'Үйлчилгээний нөхцөл';
-  static const String deleteAccount = 'Бүртгэл устгах';
+  static const String settingsTitle = 'Settings';
+  static const String notifications = 'Notifications';
+  static const String clearCache = 'Clear Cache';
+  static const String about = 'About';
+  static const String version = 'Version';
+  static const String privacyPolicy = 'Privacy Policy';
+  static const String termsOfService = 'Terms of Service';
+  static const String deleteAccount = 'Delete Account';
   static const String deleteAccountConfirm =
-      'Бүртгэлээ устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.';
+      'Are you sure you want to delete your account? This action cannot be undone.';
 
   // ── Support / Chat ────────────────────────────────────────
-  static const String supportTitle = 'Хэрэглэгчийн үйлчилгээ';
-  static const String supportHint = 'Мессеж бичих...';
+  static const String supportTitle = 'Customer Support';
+  static const String supportHint = 'Type a message...';
   static const String supportWelcome =
-      'Сайн байна уу! Танд юугаар туслах вэ?';
+      'Hello! How can I help you today?';
 
   // ── Errors ────────────────────────────────────────────────
-  static const String networkError = 'Интернэт холболт байхгүй байна';
-  static const String unknownError = 'Алдаа гарлаа, дахин оролдоно уу';
-  static const String authError = 'Нэвтрэх мэдээлэл буруу байна';
-  static const String requiredField = 'Энэ талбарыг бөглөнө үү';
-  static const String invalidEmail = 'И-мэйл буруу байна';
-  static const String passwordTooShort = 'Нууц үг хамгийн багадаа 8 тэмдэгт';
-  static const String passwordMismatch = 'Нууц үг таарахгүй байна';
+  static const String networkError = 'No internet connection';
+  static const String unknownError = 'An error occurred, please try again';
+  static const String authError = 'Invalid login credentials';
+  static const String requiredField = 'This field is required';
+  static const String invalidEmail = 'Invalid email';
+  static const String passwordTooShort = 'Password must be at least 8 characters';
+  static const String passwordMismatch = 'Passwords do not match';
 }
